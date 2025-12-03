@@ -1,6 +1,7 @@
 package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.database.ConnessioneDB;
+import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.util.Observer;
 import java.util.List;
 
@@ -42,11 +43,13 @@ public class ColloProxy implements ICollo{
         if(this.colloReale==null){
             System.out.println("[Proxy] Caricamento dati dal DB per collo: " + codice);
 
-            //this.colloReale = GestoreDB.getIstance().getColloReale(this.codice);
+            GestoreDatabase db = new GestoreDatabase();
+            this.colloReale = db.getColloRealeCompleto(this.codice);
 
-            // TODO: Rimuovere simulazione quando avremo finito GestoreDB
-            this.colloReale = new ColloReale(codice, 10.0, "MittenteTemp", "DestTemp");
-            this.colloReale.setStato(this.stato);
+            // Se il DB non trova nulla
+            if (this.colloReale==null){
+                throw new RuntimeException("Errore critico: Collo " + codice + " non trovato nel database.");
+            }
         }
         return this.colloReale;
     }
