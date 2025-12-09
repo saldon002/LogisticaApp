@@ -7,39 +7,42 @@ import java.util.List;
  * Rappresenta il Soggetto (Observable) nel pattern Observer.
  * <p>
  * Gestisce una lista di osservatori e fornisce i metodi per
- * registrarli (attach), rimuoverli (detach) e notificarli (notify).
+ * registrarli (attach), rimuoverli (detach) e notificarli.
  * </p>
  */
 public class Subject {
+
+    // Usiamo una List invece dell'array fisso delle slide per evitare limiti di dimensione
     private final List<Observer> observers = new ArrayList<>();
 
     /**
-     * Aggiunge un observer alla lista
-     * @param o L'observer da registrare
-     * @throws IllegalArgumentException se l'osservatore è null
+     * Aggiunge un observer alla lista.
+     * @param o L'observer da registrare.
+     * @throws IllegalArgumentException se l'osservatore è null.
      */
     public void attach(Observer o) {
-        if (o == null){
+        if (o == null) {
             throw new IllegalArgumentException("L'observer non può essere null");
         }
-        if (!observers.contains(o)){
+        if (!observers.contains(o)) {
             observers.add(o);
         }
     }
 
     /**
-     * Rimuove un observer dalla lista
-     * @param o L'observer da rimuovere
+     * Rimuove un observer dalla lista.
+     * @param o L'observer da rimuovere.
      */
     public void detach(Observer o) {
         observers.remove(o);
     }
 
     /**
-     * Notifica tutti gli observers registrati chiamando il loro metodo update()
+     * Notifica tutti gli observers registrati chiamando il loro metodo update().
+     * Nota: Usiamo 'notifyObservers' perché 'notify' è un metodo riservato di Java.
      */
     public void notifyObservers() {
-        for (Observer o : observers){
+        for (Observer o : observers) {
             o.update();
         }
     }
