@@ -13,7 +13,7 @@ import java.util.List;
 public class Subject {
 
     // Usiamo una List invece dell'array fisso delle slide per evitare limiti di dimensione
-    private final List<Observer> observers = new ArrayList<>();
+    private List<Observer> observers = new ArrayList<>();
 
     /**
      * Aggiunge un observer alla lista.
