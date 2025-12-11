@@ -9,7 +9,7 @@ import java.util.List;
  * Coordina Model (Azienda), Database (GestoreDatabase) e Business Logic (PackingContext).
  */
 public class LogisticaService {
-    private final AziendaTrasporti azienda;
+    private final Azienda azienda;
     private final PackingContext packingContext;
     private final GestoreDatabase gestoreDatabase;
 
@@ -18,7 +18,7 @@ public class LogisticaService {
         this.gestoreDatabase = new GestoreDatabase();
 
         // 2. Inizializziamo l'Azienda (Factory Method: usiamo l'implementazione concreta)
-        this.azienda = new AziendaLogistica();
+        this.azienda = new AziendaConcreta();
 
         // 3. Inizializziamo la Strategy (Default: NextFit)
         this.packingContext = new PackingContext(new NextFitStrategy());
@@ -38,7 +38,7 @@ public class LogisticaService {
         List<IVeicolo> flottaDisponibile = gestoreDatabase.getFlotta("DHL"); // Esempio azienda
 
         // B. Popoliamo l'azienda (Model)
-        // Nota: AziendaLogistica eredita setFlotta da AziendaTrasporti (se l'abbiamo messo, altrimenti usiamo il loop)
+        // Nota: AziendaConcreta eredita setFlotta da Azienda (se l'abbiamo messo, altrimenti usiamo il loop)
         // Per semplicità, assumiamo di poter passare la flotta o di doverla creare.
         // Se ArchivioDati restituisce già IVeicolo creati, li usiamo.
 
