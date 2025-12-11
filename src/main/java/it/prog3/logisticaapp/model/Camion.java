@@ -9,8 +9,12 @@ public class Camion extends VeicoloAstratto {
     }
 
     // Costruttore usato dalla Factory
-    public Camion(String codice, String azienda) {
-        // Passa 100 come capienza fissa per i Camion
-        super(codice, 100, azienda);
+    public Camion(String codice) {
+        super(codice, 100);
+    }
+
+    @Override
+    public String getTipo() {
+        return "CAMION";
     }
 }
