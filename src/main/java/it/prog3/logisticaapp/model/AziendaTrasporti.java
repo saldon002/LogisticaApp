@@ -16,8 +16,8 @@ public abstract class AziendaTrasporti {
      * Metodo Template che usa il Factory Method.
      * Corrisponde a "NewDocument" delle slide: crea, aggiunge e (opzionale) apre.
      *
-     * @param tipo Il tipo di veicolo da creare (es. "CAMION").
-     * @param codice Il codice del nuovo veicolo.
+     * @param tipo    Il tipo di veicolo da creare (es. "CAMION").
+     * @param codice  Il codice del nuovo veicolo.
      * @param azienda Il nome dell'azienda.
      */
     public void nuovoVeicolo(String tipo, String codice, String azienda) {
