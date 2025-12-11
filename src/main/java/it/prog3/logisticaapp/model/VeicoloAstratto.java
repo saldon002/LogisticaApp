@@ -7,12 +7,16 @@ import java.util.List;
  * Classe astratta che implementa la logica comune a tutti i veicoli.
  * <p>
  * Gestisce gli attributi base e la lista del carico.
+ * Rimuove la duplicazione di codice (DRY) dalle classi concrete Camion e Furgone.
  * </p>
  */
 public abstract class VeicoloAstratto implements IVeicolo {
+
     protected String codice;
     protected int capienza;
-    protected String azienda;
+
+    // NOTA: Abbiamo rimosso 'azienda' per rispettare rigorosamente la traccia.
+    // L'appartenenza è data dal fatto che questo oggetto starà nella lista dell'Azienda.
 
     // Aggregazione: il veicolo contiene i colli
     protected List<ICollo> carico;
@@ -27,12 +31,13 @@ public abstract class VeicoloAstratto implements IVeicolo {
 
     /**
      * Costruttore parametrico per le sottoclassi.
+     * @param codice La targa o identificativo.
+     * @param capienza Il numero massimo di colli.
      */
-    public VeicoloAstratto(String codice, int capienza, String azienda) {
-        this();
+    public VeicoloAstratto(String codice, int capienza) {
+        this(); // Chiama il costruttore vuoto per init lista
         this.codice = codice;
         this.capienza = capienza;
-        this.azienda = azienda;
     }
 
     // --- Implementazione Logica Comune ---
@@ -42,7 +47,6 @@ public abstract class VeicoloAstratto implements IVeicolo {
         if (collo == null) return false;
 
         // Controllo semplice sulla capienza (numero di colli)
-        // Nota: La traccia dice "capienza container (numero di colli)"
         if (carico.size() < capienza) {
             carico.add(collo);
             return true;
@@ -69,11 +73,8 @@ public abstract class VeicoloAstratto implements IVeicolo {
     @Override
     public void setCapienza(int capienza) { this.capienza = capienza; }
 
-    @Override
-    public String getAzienda() { return azienda; }
-
-    @Override
-    public void setAzienda(String azienda) { this.azienda = azienda; }
+    // NOTA: Non implementiamo getTipo() qui.
+    // Lo faranno le classi concrete (Camion/Furgone) ritornando la stringa fissa.
 
     @Override
     public String toString() {
