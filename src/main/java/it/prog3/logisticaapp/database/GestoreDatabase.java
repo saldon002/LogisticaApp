@@ -171,7 +171,7 @@ public class GestoreDatabase {
 
     /**
      * Recupera la flotta di veicoli per una specifica azienda.
-     * Utilizza il Factory Method {@link AziendaLogistica} per creare gli oggetti corretti.
+     * Utilizza il Factory Method {@link AziendaConcreta} per creare gli oggetti corretti.
      *
      * @param nomeAzienda Il nome dell'azienda (es. "DHL").
      * @return Lista di veicoli.
@@ -182,7 +182,7 @@ public class GestoreDatabase {
         String sql = "SELECT * FROM veicoli WHERE azienda = ?";
 
         // Istanziamo la Factory Concreta per creare i veicoli
-        AziendaLogistica factory = new AziendaLogistica();
+        AziendaConcreta factory = new AziendaConcreta();
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(sql)) {
@@ -197,7 +197,7 @@ public class GestoreDatabase {
 
                     // USIAMO IL FACTORY METHOD!
                     // Passiamo il tipo (stringa) e la factory ci restituisce l'oggetto giusto (Camion o Furgone)
-                    IVeicolo v = factory.createVeicolo(tipo, codice, nomeAzienda);
+                    IVeicolo v = factory.createVeicolo(tipo, codice);
 
                     if (v != null) {
                         flotta.add(v);
