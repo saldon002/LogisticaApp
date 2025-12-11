@@ -7,8 +7,12 @@ public class Furgone extends VeicoloAstratto {
         this.setCapienza(20);
     }
 
-    public Furgone(String codice, String azienda) {
-        // Passa 20 come capienza fissa per i Furgoni
-        super(codice, 20, azienda);
+    public Furgone(String codice) {
+        super(codice, 20);
+    }
+
+    @Override
+    public String getTipo() {
+        return "FURGONE";
     }
 }
