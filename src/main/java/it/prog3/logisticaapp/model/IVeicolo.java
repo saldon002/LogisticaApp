@@ -6,19 +6,31 @@ import java.util.List;
 /**
  * Interfaccia che definisce il comportamento di un Veicolo generico.
  * <p>
- * Estende {@link Serializable} per la compatibilità con i requisiti JDBC/JavaBeans.
+ * Estende {@link Serializable} per la compatibilità con JDBC.
  * Rappresenta il ruolo "Product" nel pattern Factory Method.
+ * Non contiene riferimenti all'Azienda (gestita dal Creator).
  * </p>
  */
 public interface IVeicolo extends Serializable {
+
+    // --- Identificativi (Traccia: Codice e Tipo) ---
+
     String getCodice();
     void setCodice(String codice);
+
+    /**
+     * Restituisce il tipo di veicolo (es. "CAMION", "FURGONE").
+     * Utile per la visualizzazione in Tabella e per il rispetto della traccia.
+     * @return Stringa descrittiva del tipo.
+     */
+    String getTipo();
+
+    // --- Capacità (Traccia: Capienza container) ---
 
     int getCapienza();
     void setCapienza(int capienza);
 
-    String getAzienda();
-    void setAzienda(String azienda);
+    // --- Logica di Business ---
 
     /**
      * Tenta di caricare un collo sul veicolo.
