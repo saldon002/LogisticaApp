@@ -2,15 +2,15 @@ package it.prog3.logisticaapp.model;
 
 public class Camion extends VeicoloAstratto {
 
-    // Costruttore vuoto (JavaBean)
+    private static final int CAPIENZA_STANDARD = 100; // Capienza maggiore
+
     public Camion() {
         super();
-        this.setCapienza(100); // Default per Camion vuoti
+        this.setCapienza(CAPIENZA_STANDARD);
     }
 
-    // Costruttore usato dalla Factory
     public Camion(String codice) {
-        super(codice, 100);
+        super(codice, CAPIENZA_STANDARD);
     }
 
     @Override
