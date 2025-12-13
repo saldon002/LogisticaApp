@@ -1,31 +1,30 @@
 package it.prog3.logisticaapp.model;
 
-import it.prog3.logisticaapp.business.Sessione; // Importiamo la Sessione per i ruoli
+import it.prog3.logisticaapp.business.Sessione; // Assicurati di avere questa classe
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.util.Observer;
 import java.util.List;
 
 /**
- * Classe Proxy che gestisce l'accesso all'oggetto {@link ColloReale}.
+ * Proxy che gestisce l'accesso all'oggetto {@link ColloReale}.
  * <p>
- * Implementa due varianti del pattern Proxy:
- * 1. <b>Virtual Proxy:</b> Carica i dati pesanti (storico) dal DB solo su richiesta.
- * 2. <b>Protection Proxy:</b> Controlla i permessi (tramite Sessione) prima di permettere modifiche.
+ * Implementa l'interfaccia composita {@link ICollo} e combina due pattern:
+ * 1. <b>Virtual Proxy:</b> Lazy Loading dei dati pesanti (storico/dettagli).
+ * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
 public class ColloProxy implements ICollo {
 
-    // Riferimento all'oggetto reale. Inizialmente è null (Lazy Loading).
+    // Riferimento all'oggetto reale (Lazy).
     private ColloReale colloReale;
 
-    // Dati "leggeri" che il Proxy possiede subito.
+    // Dati "leggeri" mantenuti nel Proxy per evitare query inutili.
     private String codice;
     private String stato;
 
     /**
-     * Costruttore del Proxy.
-     * @param codice Il codice univoco del collo.
-     * @param stato Lo stato attuale.
+     * Costruttore leggero.
+     * Non effettua connessioni al DB.
      */
     public ColloProxy(String codice, String stato) {
         this.codice = codice;
@@ -34,24 +33,27 @@ public class ColloProxy implements ICollo {
     }
 
     /**
-     * Metodo helper privato che carica l'oggetto reale se non esiste.
+     * Lazy Loading: Carica l'oggetto reale solo quando serve.
      */
     private ColloReale getColloReale() {
         if (this.colloReale == null) {
-            System.out.println("[Proxy] Caricamento dati pesanti dal DB per collo: " + codice);
+            System.out.println("[Proxy] Lazy Loading: Recupero dati completi per " + codice + "...");
 
+            // Usiamo il GestoreDatabase per creare l'oggetto
             GestoreDatabase db = new GestoreDatabase();
             this.colloReale = db.getColloRealeCompleto(this.codice);
 
-            // Se il DB non trova nulla
+            // Controllo robustezza
             if (this.colloReale == null) {
-                throw new RuntimeException("Errore critico: Collo " + codice + " non trovato nel database.");
+                throw new RuntimeException("Errore Data Integrity: Collo " + codice + " esiste nell'indice ma non nei dettagli.");
             }
         }
         return this.colloReale;
     }
 
-    // --- Implementazione Metodi ICollo ---
+    // =========================================================================
+    // IMPLEMENTAZIONE IColloDati (Business)
+    // =========================================================================
 
     @Override
     public String getCodice() {
@@ -60,81 +62,83 @@ public class ColloProxy implements ICollo {
 
     @Override
     public void setCodice(String codice) {
-        this.codice = codice;
-        if (colloReale != null) colloReale.setCodice(codice);
+        this.codice = codice; // Aggiorna locale
+        if (colloReale != null) colloReale.setCodice(codice); // Aggiorna reale se esiste
     }
 
     @Override
     public String getStato() {
-        // Se ho il reale caricato uso quello (più fresco), altrimenti uso il dato locale
+        // Se il reale è già in memoria, usa quello che è sicuramente più aggiornato.
+        // Altrimenti restituisci quello che sai tu (cache leggera).
         if (colloReale != null) return colloReale.getStato();
         return stato;
     }
 
     /**
-     * Implementazione del PROTECTION PROXY.
-     * Controlla la Sessione corrente: solo CORRIERE o MANAGER possono modificare.
+     * PROTECTION PROXY: Controlla i permessi prima di scrivere.
      */
     @Override
     public void setStato(String nuovoStato) {
-        // 1. Recupero il ruolo dalla Sessione globale
+        // 1. Controllo Sicurezza (Protection)
         Sessione.Ruolo ruolo = Sessione.getInstance().getRuoloCorrente();
 
-        // 2. Controllo i permessi
         if (ruolo != Sessione.Ruolo.CORRIERE && ruolo != Sessione.Ruolo.MANAGER) {
-            throw new SecurityException("ACCESSO NEGATO: L'utente " + ruolo + " non può modificare lo stato.");
+            // Lancia l'eccezione prevista dal contratto (LSP compliant)
+            throw new SecurityException("Utente " + ruolo + " non autorizzato a modificare lo stato.");
         }
 
-        // 3. Se autorizzato, delego al reale (caricandolo se serve)
+        // 2. Delega al Reale (che notificherà gli observer)
         getColloReale().setStato(nuovoStato);
 
-        // 4. Aggiorna anche il dato locale
+        // 3. Aggiorna cache locale
         this.stato = nuovoStato;
     }
 
-    // --- Deleghe semplici (Virtual Proxy) ---
+    // --- Metodi che forzano il caricamento (Virtual Proxy) ---
 
     @Override
     public List<String> getStorico() {
-        // Scatena il caricamento dal DB
         return getColloReale().getStorico();
     }
 
     @Override
     public String getMittente() { return getColloReale().getMittente(); }
-
     @Override
     public void setMittente(String m) { getColloReale().setMittente(m); }
 
     @Override
     public String getDestinatario() { return getColloReale().getDestinatario(); }
-
     @Override
     public void setDestinatario(String d) { getColloReale().setDestinatario(d); }
 
     @Override
     public double getPeso() { return getColloReale().getPeso(); }
-
     @Override
     public void setPeso(double p) { getColloReale().setPeso(p); }
 
 
-    // --- Deleghe per il Pattern Observer (OBBLIGATORIE per ICollo) ---
+    // =========================================================================
+    // IMPLEMENTAZIONE IObservable (Pattern Observer)
+    // =========================================================================
 
     @Override
     public void attach(Observer o) {
-        // Se qualcuno vuole osservare il Proxy, in realtà osserva il Reale.
-        // Questo forza il caricamento, perché la lista sta dentro il Reale.
+        // Attenzione: Per osservare il collo, dobbiamo caricare il reale
+        // perché è il Reale (Subject) che tiene la lista degli osservatori.
         getColloReale().attach(o);
     }
 
     @Override
     public void detach(Observer o) {
-        getColloReale().detach(o);
+        if (colloReale != null) {
+            colloReale.detach(o);
+        }
     }
 
     @Override
     public void notifyObservers() {
-        getColloReale().notifyObservers();
+        if (colloReale != null) {
+            colloReale.notifyObservers();
+        }
     }
 }
