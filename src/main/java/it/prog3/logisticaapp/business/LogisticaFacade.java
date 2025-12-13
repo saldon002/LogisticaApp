@@ -5,120 +5,111 @@ import it.prog3.logisticaapp.model.*;
 import java.util.List;
 
 /**
- * Facade (o Service Layer) che nasconde la complessità del sistema al Controller.
+ * Facade (Service Layer) che nasconde la complessità del sistema.
  * <p>
- * Coordina:
- * 1. Model: {@link Azienda} (mantiene lo stato in memoria).
- * 2. Database: {@link GestoreDatabase} (persistenza).
- * 3. Business Logic: {@link PackingContext} (algoritmo).
+ * Agisce come unico punto di ingresso per il Controller.
+ * Gestisce il flusso dati tra Database, Model (Azienda) e Business Logic (Strategy).
  * </p>
  */
 public class LogisticaFacade {
 
-    // L'istanza dell'azienda mantiene lo STATO della simulazione corrente (i veicoli e il loro carico).
     private final Azienda azienda;
-
-    private final PackingContext packingContext;
+    private final PackingContext packingContext; // Il contesto della Strategy
     private final GestoreDatabase gestoreDatabase;
 
     public LogisticaFacade() {
-        // 1. Inizializziamo il DB
         this.gestoreDatabase = new GestoreDatabase();
 
-        // 2. Inizializziamo l'Azienda (Model)
-        // Creiamo l'oggetto che conterrà la flotta in memoria.
-        // Possiamo hardcodare "DHL" o prenderlo da una configurazione.
-        this.azienda = new AziendaConcreta();
-        this.azienda.setNome("DHL");
+        // Factory Method implicito nell'uso di AziendaConcreta
+        this.azienda = new AziendaConcreta("DHL");
 
-        // 3. Inizializziamo la Strategy (Default: NextFit)
+        // Strategy Default: NextFit
         this.packingContext = new PackingContext(new NextFitStrategy());
     }
 
     /**
-     * Esegue l'intero flusso di caricamento merce.
-     * Pattern: Facade + Strategy.
+     * Permette di cambiare l'algoritmo di caricamento a runtime.
+     * (Esempio di flessibilità del pattern Strategy).
      */
-    public void caricaMerce() {
-        System.out.println("[Service] Inizio procedura di carico...");
-
-        // A. Recuperiamo i dati dal DB
-        // Nota: Assicurati che GestoreDatabase abbia getColliInPreparazione() (come scritto prima)
-        List<ICollo> colliInMagazzino = gestoreDatabase.getColliInPreparazione();
-
-        // Recuperiamo i veicoli vuoti dal DB
-        List<IVeicolo> flottaDalDB = gestoreDatabase.getFlotta(azienda.getNome());
-
-        if (colliInMagazzino.isEmpty()) {
-            System.out.println("[Service] Nessun collo da spedire.");
-            return;
-        }
-
-        // B. Popoliamo il Model (Azienda)
-        // È FONDAMENTALE salvare la flotta dentro l'oggetto Azienda per mantenere lo stato in memoria.
-        this.azienda.setFlotta(flottaDalDB);
-
-        // C. Eseguiamo l'algoritmo (Lavora sugli oggetti in memoria)
-        packingContext.esegui(colliInMagazzino, this.azienda.getFlotta());
-
-        // D. Salviamo le modifiche (Aggiorniamo lo stato dei colli a "CARICATO" nel DB)
-        for (ICollo c : colliInMagazzino) {
-            // Salviamo solo se l'algoritmo lo ha effettivamente caricato (stato cambiato)
-            if ("CARICATO".equals(c.getStato())) {
-                gestoreDatabase.salvaCollo(c);
-            }
-        }
-
-        System.out.println("[Service] Procedura completata. Veicoli caricati: " + this.azienda.getFlotta().size());
+    public void setStrategy(PackingStrategy strategy) {
+        this.packingContext.setStrategy(strategy);
     }
 
     /**
-     * Cerca un collo tramite codice.
-     * Usa il Proxy internamente (gestito da GestoreDatabase).
+     * Esegue l'intero flusso di caricamento:
+     * 1. Recupero Dati (DB) -> 2. Elaborazione (Strategy) -> 3. Persistenza (DB)
+     */
+    public void caricaMerce() {
+        System.out.println("[Facade] Inizio procedura di carico...");
+
+        // 1. Recupero dati dal DB (Se fallisce, l'eccezione risale al Controller)
+        List<ICollo> colliInMagazzino = gestoreDatabase.getColliInPreparazione();
+        List<IVeicolo> flottaDalDB = gestoreDatabase.getFlotta(azienda.getNome());
+
+        if (colliInMagazzino.isEmpty()) {
+            throw new IllegalArgumentException("Nessun collo da spedire in magazzino!");
+        }
+        if (flottaDalDB.isEmpty()) {
+            throw new IllegalArgumentException("Nessun veicolo disponibile per l'azienda " + azienda.getNome());
+        }
+
+        // 2. Aggiorno il Model in memoria
+        this.azienda.setFlotta(flottaDalDB);
+
+        // 3. Eseguo l'algoritmo (Lavora sugli oggetti Java in memoria)
+        // L'algoritmo modificherà lo stato dei colli e riempirà i veicoli
+        packingContext.esegui(colliInMagazzino, this.azienda.getFlotta());
+
+        // 4. Salvo le modifiche nel DB
+        int cont = 0;
+        for (ICollo c : colliInMagazzino) {
+            // Salviamo solo se lo stato è cambiato (Ottimizzazione)
+            if (!"IN_PREPARAZIONE".equals(c.getStato())) {
+                gestoreDatabase.salvaCollo(c);
+                cont++;
+            }
+        }
+
+        System.out.println("[Facade] Procedura completata. Colli caricati: " + cont);
+    }
+
+    /**
+     * Metodo per la ricerca puntuale.
      */
     public ICollo cercaCollo(String codice) {
         return gestoreDatabase.getCollo(codice);
     }
 
     /**
-     * Aggiorna lo stato di un collo (es. Spedito, Consegnato).
-     * @param c Il collo (Proxy o Reale).
-     * @param nuovoStato Il nuovo stato.
+     * Aggiorna lo stato di un collo gestendo sicurezza e persistenza.
+     * Dimostra l'uso del Proxy e dell'Observer (notifica implicita).
      */
     public void aggiornaStato(ICollo c, String nuovoStato) {
         try {
-            // 1. Modifica logica (questo scatena il Proxy Protection e l'Observer!)
+            // 1. Modifica nel dominio (scatta il Protection Proxy)
             c.setStato(nuovoStato);
+            // Nota: Se c è un ColloReale collegato a una GUI, qui parte la notifica Observer!
 
-            // 2. Persistenza: Se il proxy non ha lanciato eccezioni, salviamo nel DB.
+            // 2. Persistenza
             gestoreDatabase.salvaCollo(c);
 
         } catch (SecurityException e) {
-            // Rilanciamo l'eccezione per farla gestire alla GUI (mostrare alert rosso)
+            // Rilanciamo l'eccezione specifica di sicurezza
             throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Errore durante l'aggiornamento stato", e);
         }
     }
 
     /**
-     * Restituisce la flotta ATTUALE in memoria.
-     * <p>
-     * ATTENZIONE: Non richiama il DB! Restituisce l'oggetto Azienda che contiene
-     * i veicoli con i pacchi appena caricati dall'algoritmo.
-     * </p>
+     * Restituisce la situazione attuale della flotta (post-algoritmo).
      */
     public List<IVeicolo> getFlottaAttuale() {
-        // Se la flotta è vuota (appena aperto il programma), proviamo a caricarla vuota dal DB
-        if (this.azienda.getFlotta() == null || this.azienda.getFlotta().isEmpty()) {
+        // Lazy loading: se la lista è vuota, la carico dal DB
+        if (this.azienda.getFlotta().isEmpty()) {
             List<IVeicolo> f = gestoreDatabase.getFlotta(azienda.getNome());
             this.azienda.setFlotta(f);
         }
         return this.azienda.getFlotta();
-    }
-
-    // Metodo extra per il reset (opzionale)
-    public void resetSimulazione() {
-        this.azienda.getFlotta().clear();
-        // Ricarica pulita
-        getFlottaAttuale();
     }
 }
