@@ -5,26 +5,38 @@ import it.prog3.logisticaapp.model.IVeicolo;
 import java.util.List;
 
 /**
- * Context per il pattern Strategy.
- * Mantiene un riferimento alla strategia corrente e permette di cambiarla a runtime.
+ * Classe Context del pattern Strategy.
+ * <p>
+ * Mantiene un riferimento a una strategia concreta (IPackingStrategy)
+ * e delega ad essa l'esecuzione dell'algoritmo.
+ * Questo permette di cambiare algoritmo a runtime (es. tramite setStrategy).
+ * </p>
  */
 public class PackingContext {
+
     private PackingStrategy strategy;
 
     /**
-     * Costruttore.
-     * @param strategy La strategia iniziale da utilizzare.
+     * Costruttore che richiede una strategia iniziale.
+     * @param strategy La strategia di default (es. NextFit).
      */
     public PackingContext(PackingStrategy strategy) {
+        if (strategy == null) {
+            throw new IllegalArgumentException("La strategia non può essere null");
+        }
         this.strategy = strategy;
     }
 
     /**
-     * Cambia la strategia dinamicamente.
-     * @param strategy La nuova strategia.
+     * Permette di cambiare strategia a runtime.
+     * @param strategy La nuova strategia da utilizzare.
      */
     public void setStrategy(PackingStrategy strategy) {
+        if (strategy == null) {
+            throw new IllegalArgumentException("La strategia non può essere null");
+        }
         this.strategy = strategy;
+        System.out.println("[Strategy] Algoritmo cambiato in: " + strategy.getClass().getSimpleName());
     }
 
     /**
