@@ -1,32 +1,19 @@
 package it.prog3.logisticaapp.util;
 
 /**
- * Rappresenta l'astrazione dell'Osservatore nel pattern Observer.
+ * Interfaccia per il pattern Observer.
  * <p>
- * Le classi che estendono Observer (come i Controller) devono implementare
- * il metodo {@code update()} per reagire ai cambiamenti di stato del Subject.
+ * Definisce il contratto per gli oggetti che vogliono essere notificati
+ * dei cambiamenti di stato di un Subject.
+ * Trasformata in interfaccia per permettere ai Controller JavaFX di implementarla
+ * senza vincoli di ereditarietà singola.
  * </p>
  */
-public abstract class Observer {
-
-    /**
-     * Riferimento al soggetto osservato.
-     * È 'protected' per essere accessibile dalle sottoclassi concrete (es. MainController).
-     */
-    protected Subject subject;
+public interface Observer {
 
     /**
      * Metodo chiamato dal Subject quando il suo stato cambia.
-     * Deve essere implementato dalle classi concrete.
+     * Le classi concrete (es. MainController) definiranno qui la logica di reazione.
      */
-    public abstract void update();
-
-    // Getter e Setter opzionali, utili se vuoi cambiare soggetto a runtime
-    public Subject getSubject() {
-        return subject;
-    }
-
-    public void setSubject(Subject subject) {
-        this.subject = subject;
-    }
+    void update();
 }
