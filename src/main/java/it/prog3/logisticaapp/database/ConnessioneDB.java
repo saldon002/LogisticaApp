@@ -7,50 +7,46 @@ import java.sql.SQLException;
 /**
  * Gestione Singleton della connessione al Database (Versione Eager Initialization).
  * <p>
- * L'istanza viene creata immediatamente al caricamento della classe, garantendo
- * la thread-safety senza bisogno di sincronizzazione esplicita.
+ * L'istanza viene creata al caricamento della classe.
+ * Garantisce thread-safety delegando la gestione alla JVM.
  * </p>
  */
 public class ConnessioneDB {
 
-    // --- EAGER INITIALIZATION ---
-    // L'istanza viene creata SUBITO (static final), non appena la classe viene caricata in memoria.
-    // La JVM garantisce che questa riga venga eseguita una volta sola e in modo sicuro.
+    // EAGER INITIALIZATION: Istanza creata subito. Thread-safe.
     private static final ConnessioneDB INSTANCE = new ConnessioneDB();
 
-    // Stringa di connessione (assicurati che il file logistica.db sia nella cartella del progetto)
+    // Stringa di connessione JDBC per SQLite
     private final String url = "jdbc:sqlite:logistica.db";
 
     /**
      * Costruttore PRIVATO.
-     * Impedisce a chiunque altro di scrivere 'new ConnessioneDB()'.
-     * Viene eseguito una sola volta quando viene inizializzata la variabile INSTANCE.
+     * Carica il driver JDBC. Se fallisce, blocca l'applicazione.
      */
     private ConnessioneDB() {
         try {
-            // Carichiamo il driver JDBC per SQLite
             Class.forName("org.sqlite.JDBC");
+            System.out.println("[ConnessioneDB] Driver SQLite caricato correttamente.");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            System.err.println("[DB] Errore critico: Driver JDBC SQLite non trovato!");
+            // "Fail Fast": Se manca il driver, è inutile proseguire.
+            // Lanciamo una RuntimeException per fermare l'avvio del programma.
+            throw new RuntimeException("ERRORE FATALE: Driver JDBC SQLite non trovato! Controlla le librerie.", e);
         }
     }
 
     /**
-     * Metodo di accesso globale.
-     * Restituisce l'istanza già pronta. Molto veloce perché non fa controlli if.
-     *
-     * @return L'unica istanza di ConnessioneDB.
+     * Restituisce l'istanza Singleton.
      */
     public static ConnessioneDB getInstance() {
         return INSTANCE;
     }
 
     /**
-     * Fornisce una connessione attiva al database.
+     * Crea e restituisce una nuova connessione al DB.
+     * Chi chiama questo metodo è responsabile di chiudere la connessione con .close().
      *
-     * @return Un oggetto Connection nuovo (da chiudere dopo l'uso).
-     * @throws SQLException In caso di errori di collegamento.
+     * @return Connection attiva.
+     * @throws SQLException Se il file db non si trova o è bloccato.
      */
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url);
