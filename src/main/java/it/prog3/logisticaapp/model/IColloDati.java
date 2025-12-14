@@ -32,5 +32,7 @@ public interface IColloDati extends Serializable {
      */
     void setPeso(double peso);
 
+    void aggiungiEventoStorico(String evento);
+
     List<String> getStorico();
 }
