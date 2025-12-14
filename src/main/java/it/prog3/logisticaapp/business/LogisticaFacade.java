@@ -130,4 +130,55 @@ public class LogisticaFacade {
         }
         return new ArrayList<>(); // Ritorna lista vuota se non c'è storico
     }
+
+    /**
+     * Metodo "Bulk Update" per il Corriere.
+     * Registra la tappa per TUTTI i colli presenti su un dato veicolo.
+     */
+    public void registraTappaVeicolo(String targaVeicolo, String luogo) {
+        System.out.println("[Facade] Aggiornamento tappa per veicolo: " + targaVeicolo);
+
+        // 1. Cerchiamo il veicolo nella flotta
+        List<IVeicolo> flotta = getFlottaAttuale();
+        IVeicolo veicoloTrovato = null;
+
+        // Ciclo for classico (NO LAMBDA come richiesto)
+        for (IVeicolo v : flotta) {
+            if (v.getCodice().equals(targaVeicolo)) {
+                veicoloTrovato = v;
+                break;
+            }
+        }
+
+        if (veicoloTrovato == null) {
+            throw new IllegalArgumentException("Veicolo non trovato: " + targaVeicolo);
+        }
+
+        // 2. Iteriamo su tutti i colli del veicolo
+        List<ICollo> carico = veicoloTrovato.getCarico();
+        if (carico.isEmpty()) {
+            throw new IllegalArgumentException("Il veicolo è vuoto!");
+        }
+
+        int aggiornati = 0;
+        for (ICollo c : carico) {
+            try {
+                // A. Aggiorniamo lo stato (Scatta il Proxy Protection)
+                c.setStato("IN_TRANSITO");
+
+                // B. Aggiungiamo la riga allo storico
+                c.aggiungiEventoStorico("Arrivato a: " + luogo);
+
+                // C. Salviamo nel DB
+                gestoreDatabase.salvaCollo(c);
+
+                aggiornati++;
+            } catch (SecurityException e) {
+                // Se non hai i permessi, lancia l'errore e ferma tutto
+                throw e;
+            }
+        }
+
+        System.out.println("[Facade] Tappa registrata. Colli aggiornati: " + aggiornati);
+    }
 }
