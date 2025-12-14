@@ -15,7 +15,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         // Carichiamo la schermata di LOGIN all'avvio
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/login.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/main.fxml"));
         Parent root = fxmlLoader.load();
 
         scene = new Scene(root, 600, 400); // Finestra più piccola per il login
