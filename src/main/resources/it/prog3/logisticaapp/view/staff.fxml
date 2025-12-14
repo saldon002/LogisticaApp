@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/19"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.prog3.logisticaapp.controller.StaffController">
+
+    <top>
+        <ToolBar prefHeight="40.0">
+            <items>
+                <Label text="Login Operatore: " />
+                <ComboBox fx:id="comboRuolo" prefWidth="150.0" promptText="Seleziona Ruolo" />
+                <Button onAction="#onLoginClick" text="Accedi" />
+                <Label text="  |  " />
+                <Label fx:id="lblRuoloCorrente" text="Accesso non effettuato" style="-fx-font-weight: bold;" />
+                <Label text="     " />
+                <Button fx:id="btnCarica" disable="true" onAction="#onCaricaClick" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="AVVIA CARICO MERCE" />
+                <Button onAction="#onResetClick" text="Aggiorna Tabelle" />
+            </items>
+        </ToolBar>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.5">
+            <items>
+                <VBox>
+                    <Label text=" Magazzino (Colli)" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 5;" />
+                    <TableView fx:id="tableColli" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colColloCodice" text="Codice" />
+                            <TableColumn fx:id="colColloPeso" text="Peso" />
+                            <TableColumn fx:id="colColloStato" text="Stato" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+
+                <VBox>
+                    <Label text=" Flotta Veicoli" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 5;" />
+                    <TableView fx:id="tableVeicoli" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colVeicoloCodice" text="Targa" />
+                            <TableColumn fx:id="colVeicoloTipo" text="Tipo" />
+                            <TableColumn fx:id="colVeicoloCapienza" text="Cap." />
+                            <TableColumn fx:id="colVeicoloCarico" text="Carico" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </items>
+        </SplitPane>
+    </center>
+</BorderPane>
