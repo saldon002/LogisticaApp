@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.prog3.logisticaapp.controller.ClienteController">
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <children>
+        <Label text="Dove si trova il mio pacco?" textFill="#2c3e50">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Label>
+
+        <VBox alignment="CENTER" spacing="10.0">
+            <children>
+                <TextField fx:id="txtTracking" maxWidth="300.0" prefHeight="40.0" promptText="Inserisci Tracking ID (es. C_01)" />
+                <Button defaultButton="true" mnemonicParsing="false" onAction="#onCercaClick" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;" text="CERCA SPEDIZIONE" />
+            </children>
+        </VBox>
+
+        <Separator prefWidth="200.0" />
+
+        <VBox fx:id="boxRisultati" alignment="CENTER" spacing="15.0" visible="false">
+            <children>
+                <Label text="Stato Attuale della Spedizione:">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
+
+                <Label fx:id="lblStato" text="---" textFill="#27ae60">
+                    <font>
+                        <Font name="System Bold" size="48.0" />
+                    </font>
+                </Label>
+
+                <Label fx:id="lblAzienda" text="Spedito con: ---">
+                    <font>
+                        <Font name="System Italic" size="18.0" />
+                    </font>
+                </Label>
+
+                <Button mnemonicParsing="false" onAction="#onVediStoricoClick" text="Visualizza Cronologia Completa (Storico)" />
+
+                <ListView fx:id="listStorico" prefHeight="200.0" prefWidth="600.0" visible="false" />
+            </children>
+        </VBox>
+    </children>
+</VBox>
