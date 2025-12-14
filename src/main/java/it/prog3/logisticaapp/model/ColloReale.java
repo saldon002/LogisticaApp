@@ -95,6 +95,16 @@ public class ColloReale extends Subject implements ICollo {
     public void setDestinatario(String destinatario) { this.destinatario = destinatario; }
 
     @Override
+    public void aggiungiEventoStorico(String evento) {
+        if (this.storico == null) {
+            this.storico = new ArrayList<>();
+        }
+        this.storico.add(evento);
+        // tracking live
+        super.notifyObservers();
+    }
+
+    @Override
     public List<String> getStorico() { return storico; }
 
     // Metodo extra (non in interfaccia) per popolare lo storico, usato dal DB
