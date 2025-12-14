@@ -112,4 +112,10 @@ public class LogisticaFacade {
         }
         return this.azienda.getFlotta();
     }
+
+
+    public List<ICollo> getTuttiIColliInMagazzino() {
+        // Richiama il DAO per avere la lista grezza
+        return gestoreDatabase.getColliInPreparazione();
+    }
 }
