@@ -3,6 +3,7 @@ package it.prog3.logisticaapp.business;
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.model.*;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Facade (Service Layer) che nasconde la complessità del sistema.
@@ -117,5 +118,16 @@ public class LogisticaFacade {
     public List<ICollo> getTuttiIColliInMagazzino() {
         // Richiama il DAO per avere la lista grezza
         return gestoreDatabase.getColliInPreparazione();
+    }
+
+
+
+    public List<String> getStoricoSpedizione(String codice) {
+        // Recupera l'oggetto reale completo (che contiene lo storico) tramite il DAO
+        ColloReale c = gestoreDatabase.getColloRealeCompleto(codice);
+        if (c != null && c.getStorico() != null) {
+            return c.getStorico();
+        }
+        return new ArrayList<>(); // Ritorna lista vuota se non c'è storico
     }
 }
