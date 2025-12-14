@@ -97,6 +97,16 @@ public class ColloProxy implements ICollo {
     // --- Metodi che forzano il caricamento (Virtual Proxy) ---
 
     @Override
+    public void aggiungiEventoStorico(String evento) {
+        // Controllo sicurezza
+        if (Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.CORRIERE) {
+            throw new SecurityException("Utente non autorizzato a modificare lo storico.");
+        }
+        // Delega al reale
+        getColloReale().aggiungiEventoStorico(evento);
+    }
+
+    @Override
     public List<String> getStorico() {
         return getColloReale().getStorico();
     }
