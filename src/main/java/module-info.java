@@ -6,7 +6,7 @@ module it.prog3.logisticaapp {
 
     exports it.prog3.logisticaapp;
 
-    opens it.prog3.logisticaapp.controller to javafx.fxml;
-    //opens it.prog3.logisticaapp.model to javafx.base;
+    //opens it.prog3.logisticaapp.controller to javafx.fxml;
+
 
 }
