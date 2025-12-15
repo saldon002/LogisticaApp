@@ -58,24 +58,24 @@ public class DbSetup {
 
             // A. INSERIAMO LA FLOTTA (AZIENDA: DHL)
             // Un Camion grande (capienza 100) e un Furgone piccolo (capienza 20)
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V_01', 'CAMION', 100, 'DHL')");
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V_02', 'FURGONE', 20, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V01', 'CAMION', 100, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V02', 'FURGONE', 20, 'DHL')");
 
             // Aggiungiamo un veicolo di un'altra azienda per verificare che NON venga caricato
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V_X', 'CAMION', 100, 'BARTOLINI')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V03', 'CAMION', 100, 'BARTOLINI')");
             System.out.println("-> Dati veicoli inseriti.");
 
             // B. INSERIAMO I COLLI (STATO: IN_PREPARAZIONE)
             // Inseriamo 5 colli. Alcuni piccoli, alcuni grandi.
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C_01', 5.5, 'IN_PREPARAZIONE', 'Mario Rossi', 'Luigi Verdi')");
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C_02', 12.0, 'IN_PREPARAZIONE', 'Amazon', 'Cliente A')");
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C_03', 2.0, 'IN_PREPARAZIONE', 'Ebay', 'Cliente B')");
+            stmt.executeUpdate("INSERT INTO colli VALUES ('C01', 5.5, 'IN_PREPARAZIONE', 'Mario Rossi', 'Luigi Verdi')");
+            stmt.executeUpdate("INSERT INTO colli VALUES ('C02', 12.0, 'IN_PREPARAZIONE', 'Amazon', 'Cliente A')");
+            stmt.executeUpdate("INSERT INTO colli VALUES ('C03', 2.0, 'IN_PREPARAZIONE', 'Ebay', 'Cliente B')");
             // Questo ha uno stato diverso, non dovrebbe essere caricato dall'algoritmo
             stmt.executeUpdate("INSERT INTO colli VALUES ('C_OLD', 1.0, 'CONSEGNATO', 'Vecchio', 'Cliente C')");
 
             // C. INSERIAMO STORICO FINTO
-            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C_01', 'Creazione etichetta')");
-            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C_01', 'Arrivo in magazzino centrale')");
+            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C01', 'Creazione etichetta')");
+            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C01', 'Arrivo in magazzino centrale')");
             System.out.println("-> Dati colli inseriti.");
 
             System.out.println("=== SETUP COMPLETATO CON SUCCESSO ===");
