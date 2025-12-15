@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.prog3.logisticaapp.controller.LoginController">
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <Label text="Logistica App" textFill="#2c3e50">
+        <font>
+            <Font name="System Bold" size="28.0" />
+        </font>
+    </Label>
+    <Label text="Seleziona il tuo ruolo per accedere" textFill="#7f8c8d" />
+    <Separator prefWidth="200.0" />
+
+    <Button fx:id="btnManager" maxWidth="250.0" mnemonicParsing="false" onAction="#onLoginManager" style="-fx-font-size: 14px; -fx-padding: 10;" text="👨‍💼 Login come MANAGER" />
+    <Button fx:id="btnCorriere" maxWidth="250.0" mnemonicParsing="false" onAction="#onLoginCorriere" style="-fx-font-size: 14px; -fx-padding: 10;" text="🚚 Login come CORRIERE" />
+    <Button fx:id="btnCliente" maxWidth="250.0" mnemonicParsing="false" onAction="#onLoginCliente" style="-fx-font-size: 14px; -fx-padding: 10;" text="📦 Login come CLIENTE (Tracking)" />
+</VBox>
