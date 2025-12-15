@@ -14,12 +14,12 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Carichiamo la schermata di LOGIN all'avvio
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/main.fxml"));
+        // Carica la vista di Login
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/login.fxml"));
         Parent root = fxmlLoader.load();
 
-        scene = new Scene(root, 600, 400); // Finestra più piccola per il login
-        stage.setTitle("LogisticaApp - Autenticazione");
+        scene = new Scene(root, 600, 400);
+        stage.setTitle("LogisticaApp - Login");
         stage.setScene(scene);
         stage.show();
     }
