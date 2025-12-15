@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="500.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.prog3.logisticaapp.controller.CorriereController">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #f39c12;" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </padding>
+            <children>
+                <Label text="Terminale Corriere" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="18.0" />
+                    </font>
+                </Label>
+                <HBox HBox.hgrow="ALWAYS" />
+                <Button mnemonicParsing="false" onAction="#onLogout" text="Logout" />
+            </children>
+        </HBox>
+    </top>
+    <center>
+        <VBox alignment="TOP_CENTER" spacing="20.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+            </padding>
+            <children>
+                <Label text="Registrazione Nuova Tappa" textFill="#e67e22">
+                    <font>
+                        <Font size="22.0" />
+                    </font>
+                </Label>
+                <Label text="Seleziona il veicolo che stai guidando e la posizione attuale per aggiornare il tracking di tutti i pacchi a bordo." textAlignment="CENTER" wrapText="true" />
+
+                <VBox maxWidth="400.0" spacing="10.0" style="-fx-background-color: #ecf0f1; -fx-background-radius: 10;">
+                    <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                    </padding>
+                    <children>
+                        <Label text="Seleziona Veicolo:" />
+                        <ComboBox fx:id="comboVeicoli" maxWidth="1.7976931348623157E308" promptText="-- Scegli Veicolo --" />
+
+                        <Label text="Luogo Attuale (Hub/Città):" />
+                        <TextField fx:id="txtLuogo" promptText="Es. Centro Smistamento Napoli" />
+
+                        <Button fx:id="btnRegistra" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRegistraTappa" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;" text="📍 AGGIORNA POSIZIONE" />
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>
