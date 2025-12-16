@@ -5,22 +5,21 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Gestione Singleton della connessione al Database (Versione Eager Initialization).
+ * Gestione Singleton della connessione al Database.
  * <p>
- * L'istanza viene creata al caricamento della classe.
- * Garantisce thread-safety delegando la gestione alla JVM.
+ * L'istanza viene creata al caricamento della classe (Thread-safe).
  * </p>
  */
 public class ConnessioneDB {
 
-    // EAGER INITIALIZATION: Istanza creata subito. Thread-safe.
+    // EAGER INITIALIZATION
     private static final ConnessioneDB INSTANCE = new ConnessioneDB();
 
     // Stringa di connessione JDBC per SQLite
-    private final String url = "jdbc:sqlite:logistica.db";
+    private static final String URL = "jdbc:sqlite:logistica.db";
 
     /**
-     * Costruttore PRIVATO.
+     * Costruttore PRIVATO (Singleton).
      * Carica il driver JDBC. Se fallisce, blocca l'applicazione.
      */
     private ConnessioneDB() {
@@ -28,9 +27,8 @@ public class ConnessioneDB {
             Class.forName("org.sqlite.JDBC");
             System.out.println("[ConnessioneDB] Driver SQLite caricato correttamente.");
         } catch (ClassNotFoundException e) {
-            // "Fail Fast": Se manca il driver, è inutile proseguire.
             // Lanciamo una RuntimeException per fermare l'avvio del programma.
-            throw new RuntimeException("ERRORE FATALE: Driver JDBC SQLite non trovato! Controlla le librerie.", e);
+            throw new RuntimeException("ERRORE: Driver JDBC SQLite non trovato!", e);
         }
     }
 
@@ -43,12 +41,11 @@ public class ConnessioneDB {
 
     /**
      * Crea e restituisce una nuova connessione al DB.
-     * Chi chiama questo metodo è responsabile di chiudere la connessione con .close().
      *
      * @return Connection attiva.
      * @throws SQLException Se il file db non si trova o è bloccato.
      */
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url);
+        return DriverManager.getConnection(URL);
     }
 }
