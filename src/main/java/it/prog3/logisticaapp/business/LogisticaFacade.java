@@ -78,7 +78,7 @@ public class LogisticaFacade {
      * Metodo per la ricerca puntuale.
      */
     public ICollo cercaCollo(String codice) {
-        return gestoreDatabase.getCollo(codice);
+        return gestoreDatabase.getColloProxy(codice);
     }
 
     /**
