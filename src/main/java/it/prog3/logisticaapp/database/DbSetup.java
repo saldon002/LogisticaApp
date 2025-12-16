@@ -81,7 +81,7 @@ public class DbSetup {
 
             // B. INSERIMENTO COLLI
             for (int i = 1; i <= 25; i++) {
-                String codice = String.format("C_%02d", i); // Genera C_01, C_02...
+                String codice = String.format("C%02d", i); // Genera C_01, C_02...
 
                 String sql = String.format("INSERT INTO colli VALUES ('%s', 1.0, 'IN_PREPARAZIONE', 'X', 'X')", codice);
                 stmt.executeUpdate(sql);
