@@ -9,15 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gestisce le operazioni CRUD.
- * <p>
- * NOTA SULLE ECCEZIONI:
- * In questa classe usiamo il pattern "Wrap and Rethrow".
- * Catturiamo la SQLException (checked) e la rilanciamo come RuntimeException (unchecked).
- * Questo permette al Controller di gestire l'errore, senza sporcare le interfacce con "throws SQLException".
- * </p>
+ * Data Access Object (DAO) che implementa le operazioni CRUD.
  */
 public class GestoreDatabase {
+
+    private static final String SELECT_COLLI_PREPARAZIONE = "SELECT codice, stato FROM colli WHERE stato = 'IN_PREPARAZIONE'";
+    private static final String SELECT_COLLO_BASE = "SELECT codice, stato FROM colli WHERE codice = ?";
+    private static final String SELECT_COLLO_FULL = "SELECT * FROM colli WHERE codice = ?";
+    private static final String SELECT_STORICO = "SELECT descrizione, timestamp FROM storico_spostamenti WHERE collo_codice = ? ORDER BY timestamp DESC";
+    private static final String SELECT_VEICOLI_AZIENDA = "SELECT * FROM veicoli WHERE azienda = ?";
+    private static final String UPDATE_STATO_COLLO = "UPDATE colli SET stato = ? WHERE codice = ?";
+    private static final String INSERT_STORICO = "INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES (?, ?)";
 
     public GestoreDatabase() {}
 
@@ -25,31 +27,38 @@ public class GestoreDatabase {
     // SEZIONE COLLI
     // =================================================================================
 
+    /**
+     * Recupera la lista di tutti i colli in stato 'IN_PREPARAZIONE'.
+     * <p>
+     * Restituisce oggetti Proxy leggeri per ottimizzare le risorse.
+     * </p>
+     */
     public List<ICollo> getColliInPreparazione() {
         List<ICollo> lista = new ArrayList<>();
-        String sql = "SELECT codice, stato FROM colli WHERE stato = 'IN_PREPARAZIONE'";
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql);
-             ResultSet rs = st.executeQuery()) {
+             PreparedStatement st = conn.prepareStatement(SELECT_COLLI_PREPARAZIONE);
+             ResultSet rs = st.executeQuery()) { // Slide 9: ResultSet
 
             while (rs.next()) {
-                // Creiamo Proxy leggeri
                 lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato")));
             }
 
         } catch (SQLException e) {
-            // RILANCIA L'ERRORE! Non ingoiarlo.
             throw new RuntimeException("Errore DB in getColliInPreparazione", e);
         }
         return lista;
     }
 
-    public ICollo getCollo(String codice) {
-        String sql = "SELECT codice, stato FROM colli WHERE codice = ?";
-
+    /**
+     * Cerca un singolo collo tramite il codice.
+     *
+     * @param codice Il codice del collo da cercare.
+     * @return Un oggetto ColloProxy se trovato, altrimenti null.
+     */
+    public ICollo getColloProxy(String codice) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(SELECT_COLLO_BASE)) {
 
             st.setString(1, codice);
 
@@ -59,48 +68,53 @@ public class GestoreDatabase {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Errore DB ricerca collo " + codice, e);
+            throw new RuntimeException("Errore DB in getColloProxy. Ricerca collo " + codice, e);
         }
-        return null; // Qui va bene null se non trovato (non è un errore tecnico)
+        return null;
     }
 
     /**
-     * Metodo usato dal PROXY per il caricamento ritardato.
+     * Recupera l'oggetto Reale completo (Dati collo + Storico).
+     *
+     * @param codice Il codice del collo.
+     * @return L'oggetto ColloReale popolato.
      */
     public ColloReale getColloRealeCompleto(String codice) {
-        String sql = "SELECT * FROM colli WHERE codice = ?";
         ColloReale reale = null;
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(SELECT_COLLO_FULL)) {
 
             st.setString(1, codice);
 
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
+                    // Mappatura JavaBean (tabella -> oggetto)
                     reale = new ColloReale();
                     reale.setCodice(rs.getString("codice"));
                     reale.setStato(rs.getString("stato"));
                     reale.setPeso(rs.getDouble("peso"));
                     reale.setMittente(rs.getString("mittente"));
                     reale.setDestinatario(rs.getString("destinatario"));
-
-                    // Caricamento storico
+                    // Popola la lista complessa (relazione one-to-many)
                     reale.setStorico(getStoricoPerCollo(codice));
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Errore DB caricamento completo collo " + codice, e);
+            throw new RuntimeException("Errore DB in getColloRealeCompleto. Caricamento completo collo " + codice, e);
         }
         return reale;
     }
 
+    /**
+     * Metodo ausiliario privato per recuperare lo storico spostamenti.
+     * Esegue una query sulla tabella correlata 'storico_spostamenti'.
+     */
     private List<String> getStoricoPerCollo(String codiceCollo) {
         List<String> storico = new ArrayList<>();
-        String sql = "SELECT descrizione, timestamp FROM storico_spostamenti WHERE collo_codice = ? ORDER BY timestamp DESC";
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(SELECT_STORICO)) {
 
             st.setString(1, codiceCollo);
             try (ResultSet rs = st.executeQuery()) {
@@ -109,24 +123,49 @@ public class GestoreDatabase {
                 }
             }
         } catch (SQLException e) {
-            // Anche qui, se fallisce lo storico, è un problema
-            throw new RuntimeException("Errore DB storico collo " + codiceCollo, e);
+            throw new RuntimeException("Errore DB in getStoricoPerCollo. Storico collo " + codiceCollo, e);
         }
         return storico;
     }
 
-    public void salvaCollo(ICollo c) {
-        String sql = "UPDATE colli SET stato = ? WHERE codice = ?";
+    // =================================================================================
+    // SEZIONE AGGIORNAMENTI (UPDATE / INSERT)
+    // =================================================================================
 
+    /**
+     * Aggiorna lo stato di un collo esistente.
+     */
+    public void salvaCollo(ICollo c) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(UPDATE_STATO_COLLO)) {
 
             st.setString(1, c.getStato());
             st.setString(2, c.getCodice());
+
             st.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Errore salvataggio collo " + c.getCodice(), e);
+            throw new RuntimeException("Errore DB in salvaCollo. Errore salvataggio collo " + c.getCodice(), e);
+        }
+    }
+
+    /**
+     * Inserisce una nuova riga nella tabella storico.
+     *
+     * @param codiceCollo Il codice del collo a cui aggiungere l'evento.
+     * @param descrizione La descrizione dell'evento.
+     */
+    public void aggiornaTracking(String codiceCollo, String descrizione) {
+        try (Connection conn = ConnessioneDB.getInstance().getConnection();
+             PreparedStatement st = conn.prepareStatement(INSERT_STORICO)) {
+
+            st.setString(1, codiceCollo);
+            st.setString(2, descrizione);
+
+            st.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Errore DB in aggiornaTracking. Errore inserimento storico per " + codiceCollo, e);
         }
     }
 
@@ -134,15 +173,19 @@ public class GestoreDatabase {
     // SEZIONE VEICOLI
     // =================================================================================
 
+    /**
+     * Recupera la lista dei veicoli di una specifica azienda.
+     * <p>
+     * Utilizza il pattern <b>Factory Method</b> per istanziare
+     * dinamicamente l'oggetto corretto (Camion o Furgone) in base al valore della colonna 'tipo'.
+     * </p>
+     */
     public List<IVeicolo> getFlotta(String nomeAzienda) {
         List<IVeicolo> flotta = new ArrayList<>();
-        String sql = "SELECT * FROM veicoli WHERE azienda = ?";
-
-        // Factory Method
-        AziendaConcreta factory = new AziendaConcreta();
+        AziendaConcreta factoryHelper = new AziendaConcreta();
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+             PreparedStatement st = conn.prepareStatement(SELECT_VEICOLI_AZIENDA)) {
 
             st.setString(1, nomeAzienda);
 
@@ -152,17 +195,16 @@ public class GestoreDatabase {
                     String codice = rs.getString("codice");
                     int capienza = rs.getInt("capienza");
 
-                    // NOTA: createVeicolo in AziendaConcreta deve essere PUBLIC per funzionare qui
-                    IVeicolo v = factory.createVeicolo(tipo, codice);
+                    IVeicolo v = factoryHelper.createVeicolo(tipo, codice);
 
                     if (v != null) {
-                        v.setCapienza(capienza); // Settiamo la capienza letta dal DB
+                        v.setCapienza(capienza);
                         flotta.add(v);
                     }
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Errore caricamento flotta azienda " + nomeAzienda, e);
+            throw new RuntimeException("Errore DB in getFlotta. Errore caricamento flotta azienda " + nomeAzienda, e);
         }
         return flotta;
     }
