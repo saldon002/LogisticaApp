@@ -1,26 +1,33 @@
 package it.prog3.logisticaapp.database;
 
-import it.prog3.logisticaapp.database.ConnessioneDB;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.SQLException;
 
+/**
+ * Classe di utilità per la creazione e il popolamento iniziale del Database.
+ */
 public class DbSetup {
 
     public static void main(String[] args) {
-        System.out.println("=== SETUP DATABASE INIZIALE ===");
+        System.out.println("=== SETUP DATABASE ===");
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              Statement stmt = conn.createStatement()) {
 
-            // 1. PULIZIA (Opzionale: cancella tutto se vuoi ripartire da zero)
+            // ==========================================
+            // 1. PULIZIA (DROP TABLES)
+            // ==========================================
             stmt.executeUpdate("DROP TABLE IF EXISTS storico_spostamenti");
             stmt.executeUpdate("DROP TABLE IF EXISTS colli");
             stmt.executeUpdate("DROP TABLE IF EXISTS veicoli");
             System.out.println("-> Tabelle vecchie eliminate.");
 
-            // 2. CREAZIONE TABELLA VEICOLI
-            // Nota: Le colonne devono chiamarsi ESATTAMENTE come nel GestoreDatabase
+            // ==========================================
+            // 2. CREAZIONE SCHEMA (DDL)
+            // ==========================================
+
+            // Tabella VEICOLI
             String sqlVeicoli = "CREATE TABLE veicoli (" +
                     "codice TEXT PRIMARY KEY, " +
                     "tipo TEXT NOT NULL, " +
@@ -30,7 +37,7 @@ public class DbSetup {
             stmt.executeUpdate(sqlVeicoli);
             System.out.println("-> Tabella 'veicoli' creata.");
 
-            // 3. CREAZIONE TABELLA COLLI
+            // Tabella COLLI
             String sqlColli = "CREATE TABLE colli (" +
                     "codice TEXT PRIMARY KEY, " +
                     "peso REAL, " +
@@ -41,7 +48,8 @@ public class DbSetup {
             stmt.executeUpdate(sqlColli);
             System.out.println("-> Tabella 'colli' creata.");
 
-            // 4. CREAZIONE TABELLA STORICO (Per il Lazy Loading)
+            // Tabella STORICO (Relazione 1-a-N)
+            // Usata per il tracciamento. Collegata ai colli tramite Foreign Key.
             String sqlStorico = "CREATE TABLE storico_spostamenti (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "collo_codice TEXT, " +
@@ -53,29 +61,31 @@ public class DbSetup {
             System.out.println("-> Tabella 'storico_spostamenti' creata.");
 
             // ==========================================
-            // INSERIMENTO DATI DI PROVA (MOCK DATA)
+            // 3. INSERIMENTO DATI DI PROVA (MOCK DATA)
             // ==========================================
+            // Nota: Qui usiamo Statement semplice perché i dati sono costanti e sicuri.
+            // In un'app reale con input utente useremmo sempre PreparedStatement.
 
-            // A. INSERIAMO LA FLOTTA (AZIENDA: DHL)
-            // Un Camion grande (capienza 100) e un Furgone piccolo (capienza 20)
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V01', 'CAMION', 100, 'DHL')");
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V02', 'FURGONE', 20, 'DHL')");
-
-            // Aggiungiamo un veicolo di un'altra azienda per verificare che NON venga caricato
-            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V03', 'CAMION', 100, 'BARTOLINI')");
+            // A. INSERIMENTO FLOTTA
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V01', 'CAMION',  5, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V02', 'FURGONE', 2, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V03', 'CAMION',  5, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V04', 'FURGONE', 2, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V05', 'CAMION',  5, 'DHL')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V06', 'CAMION',  5, 'BARTOLINI')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V07', 'FURGONE', 2, 'BARTOLINI')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V08', 'CAMION',  5, 'BARTOLINI')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V09', 'FURGONE', 2, 'BARTOLINI')");
+            stmt.executeUpdate("INSERT INTO veicoli VALUES ('V10', 'CAMION',  5, 'BARTOLINI')");
             System.out.println("-> Dati veicoli inseriti.");
 
-            // B. INSERIAMO I COLLI (STATO: IN_PREPARAZIONE)
-            // Inseriamo 5 colli. Alcuni piccoli, alcuni grandi.
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C01', 5.5, 'IN_PREPARAZIONE', 'Mario Rossi', 'Luigi Verdi')");
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C02', 12.0, 'IN_PREPARAZIONE', 'Amazon', 'Cliente A')");
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C03', 2.0, 'IN_PREPARAZIONE', 'Ebay', 'Cliente B')");
-            // Questo ha uno stato diverso, non dovrebbe essere caricato dall'algoritmo
-            stmt.executeUpdate("INSERT INTO colli VALUES ('C_OLD', 1.0, 'CONSEGNATO', 'Vecchio', 'Cliente C')");
+            // B. INSERIMENTO COLLI
+            for (int i = 1; i <= 25; i++) {
+                String codice = String.format("C_%02d", i); // Genera C_01, C_02...
 
-            // C. INSERIAMO STORICO FINTO
-            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C01', 'Creazione etichetta')");
-            stmt.executeUpdate("INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES ('C01', 'Arrivo in magazzino centrale')");
+                String sql = String.format("INSERT INTO colli VALUES ('%s', 1.0, 'IN_PREPARAZIONE', 'X', 'X')", codice);
+                stmt.executeUpdate(sql);
+            }
             System.out.println("-> Dati colli inseriti.");
 
             System.out.println("=== SETUP COMPLETATO CON SUCCESSO ===");
