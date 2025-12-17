@@ -40,7 +40,7 @@ public class NextFitStrategy implements PackingStrategy { // Usa IPackingStrateg
             }
 
             // 2. Prova inserimento nel veicolo corrente
-            boolean caricato = veicoloCorrente.carica(collo);
+            boolean caricato = veicoloCorrente.caricaCollo(collo);
 
             if (caricato) {
                 // Successo! Aggiorna stato e logga
@@ -57,7 +57,7 @@ public class NextFitStrategy implements PackingStrategy { // Usa IPackingStrateg
                     veicoloCorrente = veicoloIterator.next();
 
                     // Riprova sul nuovo veicolo (appena aperto, quindi vuoto)
-                    if (veicoloCorrente.carica(collo)) {
+                    if (veicoloCorrente.caricaCollo(collo)) {
                         collo.setStato("CARICATO");
                         System.out.println(" -> Collo " + collo.getCodice() + " caricato su NUOVO veicolo " + veicoloCorrente.getCodice());
                     } else {
