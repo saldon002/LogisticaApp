@@ -5,29 +5,32 @@ import java.util.List;
 
 /**
  * Classe base astratta per il pattern Observer.
- * Implementa l'interfaccia IObservable rispettando il principio DRY (codice scritto una volta sola).
+ * <p>
+ *     Gestisce la lista degli osservatori e la notifica.
+ * </p>
  */
 public abstract class Subject implements IObservable {
 
+    // Lista degli osservatori iscritti
     private final List<Observer> observers = new ArrayList<>();
 
     @Override
-    public void attach(Observer o) {
-        if (o == null) throw new IllegalArgumentException("Observer nullo");
-        if (!observers.contains(o)) {
-            observers.add(o);
+    public void attach(Observer observer) {
+        if (observer != null && !observers.contains(observer)) {
+            observers.add(observer);
         }
     }
 
     @Override
-    public void detach(Observer o) {
-        observers.remove(o);
+    public void detach(Observer observer) {
+        observers.remove(observer);
     }
 
     @Override
     public void notifyObservers() {
-        for (Observer o : observers) {
-            o.update();
+        // Scorre la lista e notifica tutti
+        for (Observer observer : observers) {
+            observer.update();
         }
     }
 }
