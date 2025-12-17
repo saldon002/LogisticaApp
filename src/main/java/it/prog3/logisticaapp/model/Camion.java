@@ -2,7 +2,7 @@ package it.prog3.logisticaapp.model;
 
 public class Camion extends VeicoloAstratto {
 
-    private static final int CAPIENZA_STANDARD = 100; // Capienza maggiore
+    private static final int CAPIENZA_STANDARD = 5; // Capienza maggiore
 
     public Camion() {
         super();
