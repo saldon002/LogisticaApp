@@ -1,68 +1,40 @@
 package it.prog3.logisticaapp.model;
 
+import it.prog3.logisticaapp.util.Subject;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Classe astratta che implementa la logica comune a tutti i veicoli.
- * <p>
- * Implementa il pattern <b>Template Method</b> implicito: fornisce l'implementazione base
- * per la gestione del carico, lasciando alle sottoclassi solo la definizione del tipo.
- * Rispetta il principio DRY (Don't Repeat Yourself).
- * </p>
  */
-public abstract class VeicoloAstratto implements IVeicolo {
+public abstract class VeicoloAstratto extends Subject implements IVeicolo {
 
     protected String codice;
     protected int capienza;
-
-    // Aggregazione: il veicolo contiene i colli.
-    // Usiamo l'interfaccia ICollo per rispettare il DIP (Dependency Inversion).
     protected List<ICollo> carico;
 
-    /**
-     * Costruttore vuoto.
-     * Inizializza la lista per evitare NullPointerException.
-     */
-    public VeicoloAstratto() {
+    public VeicoloAstratto(String codice, int capienza) {
+        setCodice(codice);
+        setCapienza(capienza);
         this.carico = new ArrayList<>();
     }
 
-    /**
-     * Costruttore parametrico.
-     * @param codice La targa o identificativo.
-     * @param capienza Il numero massimo di colli.
-     */
-    public VeicoloAstratto(String codice, int capienza) {
-        this();
-        setCodice(codice);   // Usiamo i setter per validare
-        setCapienza(capienza);
-    }
-
-    // --- Implementazione Logica Comune ---
-
     @Override
-    public boolean carica(ICollo collo) {
-        // Controllo robustezza: Il null non è un caso di "veicolo pieno", è un errore.
+    public boolean caricaCollo(ICollo collo) {
         if (collo == null) {
             throw new IllegalArgumentException("Impossibile caricare un collo nullo.");
         }
-
         // Controllo capienza
         if (carico.size() < capienza) {
             carico.add(collo);
-            return true; // Caricato con successo
+            notifyObservers();
+            return true;
         }
-
-        return false; // Veicolo pieno
+        return false;
     }
 
     @Override
-    public List<ICollo> getCarico() {
-        return carico;
-    }
-
-    // --- Getters e Setters con Validazione (LSP Compliance) ---
+    public List<ICollo> getCarico() { return carico; }
 
     @Override
     public String getCodice() { return codice; }
@@ -85,8 +57,6 @@ public abstract class VeicoloAstratto implements IVeicolo {
         }
         this.capienza = capienza;
     }
-
-    // NOTA: getTipo() rimane astratto (da implementare nelle sottoclassi)
 
     @Override
     public String toString() {
