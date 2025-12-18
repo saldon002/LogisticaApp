@@ -11,7 +11,7 @@ import java.util.List;
  * Estende {@link Subject} per ereditare la logica di notifica (Observer Pattern).
  * </p>
  */
-public class ColloReale extends Subject implements ICollo {
+public class ColloReale implements ICollo {
 
     // Incapsulamento rigoroso dei dati (SRP: Gestione stato)
     private String codice;
@@ -59,19 +59,8 @@ public class ColloReale extends Subject implements ICollo {
     @Override
     public String getStato() { return stato; }
 
-    /**
-     * Modifica lo stato e NOTIFICA gli osservatori.
-     * Questo è il punto di connessione tra i Dati e il Pattern Observer.
-     */
     @Override
-    public void setStato(String stato) {
-        // Ottimizzazione: notifichiamo solo se lo stato cambia davvero
-        if (!stato.equals(this.stato)) {
-            this.stato = stato;
-            // Metodo ereditato dalla classe astratta Subject
-            super.notifyObservers();
-        }
-    }
+    public void setStato(String stato) { this.stato = stato; }
 
     @Override
     public double getPeso() { return peso; }
@@ -100,8 +89,6 @@ public class ColloReale extends Subject implements ICollo {
             this.storico = new ArrayList<>();
         }
         this.storico.add(evento);
-        // tracking live
-        super.notifyObservers();
     }
 
     @Override
@@ -112,9 +99,8 @@ public class ColloReale extends Subject implements ICollo {
         this.storico = storico;
     }
 
-    // Override di toString() per debug e log
     @Override
     public String toString() {
-        return "ColloReale[codice=" + codice + ", peso=" + peso + "kg, stato=" + stato + "]";
+        return codice + " (" + stato + ")";
     }
 }
