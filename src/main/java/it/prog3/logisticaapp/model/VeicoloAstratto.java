@@ -13,10 +13,14 @@ public abstract class VeicoloAstratto extends Subject implements IVeicolo {
     protected int capienza;
     protected List<ICollo> carico;
 
+    public VeicoloAstratto() {
+        this.carico = new ArrayList<>();
+    }
+
     public VeicoloAstratto(String codice, int capienza) {
+        this();
         setCodice(codice);
         setCapienza(capienza);
-        this.carico = new ArrayList<>();
     }
 
     @Override
