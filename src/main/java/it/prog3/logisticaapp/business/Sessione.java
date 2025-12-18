@@ -1,12 +1,9 @@
 package it.prog3.logisticaapp.business;
 
 /**
- * Gestisce la sessione utente corrente tramite il pattern Singleton.
- * <p>
- * Questa classe permette di simulare il login di diversi attori (Manager, Corriere, Cliente)
- * mantenendo lo stato globale dell'applicazione.
- * Rispetta il principio SRP gestendo unicamente i dati di sessione.
- * </p>
+ * Singleton Sessione.
+ * Gestisce l'utente attualmente loggato nel sistema (simulazione login).
+ * Permette di condividere le informazioni dell'utente tra le varie schermate della GUI.
  */
 public class Sessione {
 
