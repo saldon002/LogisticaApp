@@ -82,16 +82,15 @@ public class ColloProxy implements ICollo {
         // 1. Controllo Sicurezza (Protection)
         Sessione.Ruolo ruolo = Sessione.getInstance().getRuoloCorrente();
 
-        if (ruolo != Sessione.Ruolo.CORRIERE && ruolo != Sessione.Ruolo.MANAGER) {
+        if (ruolo == Sessione.Ruolo.CLIENTE) {
             // Lancia l'eccezione prevista dal contratto (LSP compliant)
             throw new SecurityException("Utente " + ruolo + " non autorizzato a modificare lo stato.");
         }
 
-        // 2. Delega al Reale (che notificherà gli observer)
-        getColloReale().setStato(nuovoStato);
-
-        // 3. Aggiorna cache locale
-        this.stato = nuovoStato;
+        this.stato = stato;
+        if (this.colloReale != null) {
+            getColloReale().setStato(stato);
+        }
     }
 
     // --- Metodi che forzano il caricamento (Virtual Proxy) ---
@@ -126,29 +125,4 @@ public class ColloProxy implements ICollo {
     @Override
     public void setPeso(double p) { getColloReale().setPeso(p); }
 
-
-    // =========================================================================
-    // IMPLEMENTAZIONE IObservable (Pattern Observer)
-    // =========================================================================
-
-    @Override
-    public void attach(Observer o) {
-        // Attenzione: Per osservare il collo, dobbiamo caricare il reale
-        // perché è il Reale (Subject) che tiene la lista degli osservatori.
-        getColloReale().attach(o);
-    }
-
-    @Override
-    public void detach(Observer o) {
-        if (colloReale != null) {
-            colloReale.detach(o);
-        }
-    }
-
-    @Override
-    public void notifyObservers() {
-        if (colloReale != null) {
-            colloReale.notifyObservers();
-        }
-    }
 }
