@@ -6,12 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Implementazione concreta dell'algoritmo Next Fit.
+ * Concrete Strategy: Implementazione dell'algoritmo Next Fit.
  * <p>
- * LOGICA:
- * Mantiene un riferimento al veicolo corrente.
- * Se un collo entra, bene. Se non entra, "chiude" il veicolo e apre il successivo.
- * Non torna mai indietro ai veicoli precedenti (a differenza del First Fit).
+ * LOGICA NEXT FIT:
+ * Mantiene un riferimento all'ultimo veicolo utilizzato.
+ * Se un collo entra nel veicolo corrente, lo aggiunge.
+ * Se non entra, chiude il veicolo corrente, passa al successivo nella lista e prova ad aggiungerlo lì.
+ * Non controlla mai i veicoli precedenti.
  * </p>
  */
 public class NextFitStrategy implements PackingStrategy { // Usa IPackingStrategy
