@@ -7,7 +7,6 @@ public class Furgone extends VeicoloAstratto {
 
     public Furgone() {
         super();
-        // Usiamo il setter per attivare eventuali validazioni del padre
         this.setCapienza(CAPIENZA_STANDARD);
     }
 
