@@ -26,6 +26,9 @@ public class GestoreDatabase {
     private static final String UPDATE_STATO_COLLO = "UPDATE colli SET stato = ? WHERE codice = ?";
     private static final String INSERT_STORICO = "INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES (?, ?)";
 
+    private static final String UPDATE_COLLO_CARICATO = "UPDATE colli SET stato = ?, veicolo_codice = ? WHERE codice = ?";
+    private static final String SELECT_COLLI_PER_VEICOLO = "SELECT * FROM colli WHERE veicolo_codice = ?";
+
     public GestoreDatabase() {}
 
     // =================================================================================
@@ -46,10 +49,10 @@ public class GestoreDatabase {
 
             while (rs.next()) {
                 String nomeAzienda = rs.getString("azienda");
-                String codice = rs.getString("codice");
+                String codiceVeicolo = rs.getString("codice");
                 String tipo = rs.getString("tipo");
 
-                // 1. Cerchiamo se abbiamo già creato l'oggetto Azienda nella lista
+                // 1. Gestione Azienda
                 Azienda aziendaCorrente = null;
                 for (Azienda a : listaAziende) {
                     if (a.getNome().equalsIgnoreCase(nomeAzienda)) {
@@ -57,32 +60,54 @@ public class GestoreDatabase {
                         break;
                     }
                 }
-
-                // Se non c'è, la creiamo e la aggiungiamo
                 if (aziendaCorrente == null) {
                     aziendaCorrente = new AziendaConcreta(nomeAzienda);
                     listaAziende.add(aziendaCorrente);
                 }
 
-                // 2. Creazione Veicolo tramite Factory dell'Azienda
+                // 2. Creazione Veicolo
                 try {
-                    // La Factory crea l'oggetto corretto (es. new Camion()) impostando la capienza default
-                    IVeicolo v = aziendaCorrente.createVeicolo(tipo, codice);
-
+                    IVeicolo v = aziendaCorrente.createVeicolo(tipo, codiceVeicolo);
                     if (v != null) {
-                        // Aggiungiamo il veicolo alla lista interna dell'azienda
+                        // === NOVITÀ: CARICAMENTO DEI COLLI DAL DB ===
+                        // Recuperiamo i colli che risultano caricati su questo veicolo
+                        List<ICollo> colliCaricati = getColliPerVeicolo(codiceVeicolo);
+
+                        // Li aggiungiamo manualmente al veicolo in memoria
+                        for (ICollo c : colliCaricati) {
+                            v.caricaCollo(c);
+                        }
+
                         aziendaCorrente.aggiungiVeicoloEsistente(v);
                     }
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Skip veicolo non valido nel DB: " + codice + " (" + tipo + ")");
+                    System.err.println("Skip veicolo: " + codiceVeicolo);
                 }
             }
-
         } catch (SQLException e) {
-            throw new RuntimeException("Errore nel caricamento della flotta manager", e);
+            throw new RuntimeException("Errore caricamento flotta", e);
         }
-
         return listaAziende;
+    }
+
+    // Metodo helper privato
+    private List<ICollo> getColliPerVeicolo(String codiceVeicolo) {
+        List<ICollo> lista = new ArrayList<>();
+        try (Connection conn = ConnessioneDB.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_COLLI_PER_VEICOLO)) {
+
+            ps.setString(1, codiceVeicolo);
+            try (ResultSet rs = ps.executeQuery()) {
+                while(rs.next()) {
+                    // Creiamo il proxy o il reale (qui va bene reale leggero o proxy)
+                    // Dato che sono già caricati, usiamo ColloProxy per coerenza
+                    lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 
     /**
@@ -140,6 +165,24 @@ public class GestoreDatabase {
 
         } catch (SQLException e) {
             System.err.println("Errore inserimento collo " + c.getCodice() + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Aggiorna il collo salvando il nuovo stato E il veicolo su cui è stato caricato.
+     */
+    public void associaColloVeicolo(ICollo c, String codiceVeicolo) {
+        try (Connection conn = ConnessioneDB.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(UPDATE_COLLO_CARICATO)) {
+
+            ps.setString(1, c.getStato());        // Es. "CARICATO"
+            ps.setString(2, codiceVeicolo);       // Es. "V01"
+            ps.setString(3, c.getCodice());       // Es. "C01"
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Errore associazione collo-veicolo: " + e.getMessage(), e);
         }
     }
 
