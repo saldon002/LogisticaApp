@@ -12,6 +12,7 @@ import javafx.scene.control.TextField;
 import java.io.IOException;
 import java.util.List;
 
+/*
 public class CorriereController {
 
     @FXML private ComboBox<IVeicolo> comboVeicoli;
@@ -80,3 +81,4 @@ public class CorriereController {
         alert.showAndWait();
     }
 }
+*/
