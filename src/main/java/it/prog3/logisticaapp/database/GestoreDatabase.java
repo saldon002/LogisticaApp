@@ -21,7 +21,7 @@ public class GestoreDatabase {
 
     private static final String SELECT_VEICOLI_AZIENDA = "SELECT * FROM veicoli WHERE azienda = ?";
     private static final String SELECT_VEICOLI_ALL = "SELECT * FROM veicoli ORDER BY azienda, codice";
-    private static final String INSERT_VEICOLO = "INSERT INTO veicoli (codice, tipo, capienza, azienda, stato) VALUES (?, ?, ?, ?, ?)";
+    private static final String INSERT_VEICOLO = "INSERT INTO veicoli (codice, tipo, capienza, azienda) VALUES (?, ?, ?, ?)";
 
     private static final String UPDATE_STATO_COLLO = "UPDATE colli SET stato = ? WHERE codice = ?";
     private static final String INSERT_STORICO = "INSERT INTO storico_spostamenti (collo_codice, descrizione) VALUES (?, ?)";
