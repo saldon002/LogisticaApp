@@ -1,62 +1,45 @@
 package it.prog3.logisticaapp;
 
-import it.prog3.logisticaapp.business.LogisticaFacade;
-import it.prog3.logisticaapp.business.Sessione;
-import it.prog3.logisticaapp.model.ICollo;
-import it.prog3.logisticaapp.model.IVeicolo;
+import it.prog3.logisticaapp.database.DbSetup;
+import it.prog3.logisticaapp.database.GestoreDatabase;
+import it.prog3.logisticaapp.model.*;
 
 public class TestMain {
     public static void main(String[] args) {
         System.out.println("=== INIZIO TEST BACKEND ===");
 
-        try {
-            // 1. Istanziamo il Facade (simula l'avvio della GUI)
-            System.out.println("1. Inizializzazione Facade...");
-            LogisticaFacade facade = new LogisticaFacade();
+        // 1. Reset e Creazione Tabelle
+        DbSetup.main(args);
 
-            // --- SIMULAZIONE LOGIN (FIX PER SECURITY EXCEPTION) ---
-            System.out.println("-> Simulo Login come MANAGER...");
-            Sessione.getInstance().setRuoloCorrente(Sessione.Ruolo.MANAGER);
-            // ------------------------------------------------------
+        GestoreDatabase dao = new GestoreDatabase();
+        //dao.resetTabelle();
 
-            // 2. Stampiamo la flotta vuota (o come è nel DB prima del carico)
-            System.out.println("\n2. Controllo Flotta Iniziale:");
-            for (IVeicolo v : facade.getFlottaAttuale()) {
-                System.out.println("   - " + v);
-            }
+        // 2. Creazione AZIENDE e VEICOLI
+        Azienda dhl = new AziendaConcreta("DHL");
+        dhl.aggiungiVeicolo("CAMION", "V01");
+        dhl.aggiungiVeicolo("CAMION", "V02");
+        dhl.aggiungiVeicolo("CAMION", "V03");
+        dhl.aggiungiVeicolo("FURGONE", "V04");
+        dhl.aggiungiVeicolo("FURGONE", "V05");
 
-            // 3. Simuliamo il click sul bottone "Carica Merce"
-            System.out.println("\n3. Esecuzione Algoritmo di Carico...");
-            facade.caricaMerce();
+        Azienda brt = new AziendaConcreta("BRT");
+        brt.aggiungiVeicolo("CAMION", "V06");
+        brt.aggiungiVeicolo("CAMION", "V07");
+        brt.aggiungiVeicolo("FURGONE", "V08");
+        brt.aggiungiVeicolo("FURGONE", "V09");
+        brt.aggiungiVeicolo("FURGONE", "V10");
 
-            // 4. Verifichiamo il risultato in memoria
-            System.out.println("\n4. Risultato Post-Carico:");
-            for (IVeicolo v : facade.getFlottaAttuale()) {
-                System.out.println("   - " + v.toString());
-                System.out.println("     Contenuto: " + v.getCarico().size() + " colli.");
-                for(ICollo c : v.getCarico()) {
-                    System.out.println("       -> " + c.getCodice() + " (" + c.getPeso() + "kg)");
-                }
-            }
+        // 3. Salvataggio FLOTTA su DB
+        dao.inserisciAzienda(dhl);
+        dao.inserisciAzienda(brt);
 
-            // 5. Test Ricerca e Proxy
-            System.out.println("\n5. Test Ricerca Proxy:");
-            // Sostituisci "C001" con un codice che sai esistere nel tuo DB
-            String codiceTest = "C_01";
-            ICollo c = facade.cercaCollo(codiceTest);
-            if (c != null) {
-                System.out.println("   Trovato: " + c.getCodice() + " | Stato: " + c.getStato());
-                // Qui scatta il lazy loading se chiediamo lo storico
-                // System.out.println("   Storico: " + c.getStorico()); 
-            } else {
-                System.out.println("   Collo " + codiceTest + " non trovato (normale se il DB è vuoto/diverso)");
-            }
-
-        } catch (Exception e) {
-            System.err.println("\n!!! ERRORE CRITICO DURANTE IL TEST !!!");
-            e.printStackTrace();
+        // 4. Creazione COLLI
+        for (int i = 1; i <= 25; i++) {
+            String codice = String.format("C%02d", i);
+            ICollo c = new ColloReale(codice, 1.0, "X", "Y");
+            dao.inserisciCollo(c);
         }
 
-        System.out.println("\n=== FINE TEST ===");
+        System.out.println("=== FINE TEST BACKEND ===");
     }
 }
