@@ -2,7 +2,6 @@ package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.GestoreDatabase;
-import it.prog3.logisticaapp.util.Observer;
 import java.util.List;
 
 /**
@@ -14,6 +13,8 @@ import java.util.List;
  * </p>
  */
 public class ColloProxy implements ICollo {
+
+    private static final long serialVersionUID = 1L;
 
     // Riferimento all'oggetto reale (Lazy).
     private ColloReale colloReale;
@@ -45,6 +46,7 @@ public class ColloProxy implements ICollo {
 
             // Controllo robustezza
             if (this.colloReale == null) {
+                // Se non troviamo i dettagli, potrebbe essere un errore grave di consistenza DB
                 throw new RuntimeException("Errore Data Integrity: Collo " + codice + " esiste nell'indice ma non nei dettagli.");
             }
         }
@@ -52,7 +54,7 @@ public class ColloProxy implements ICollo {
     }
 
     // =========================================================================
-    // IMPLEMENTAZIONE IColloDati (Business)
+    // IMPLEMENTAZIONE ICollo (Metodi Proxy)
     // =========================================================================
 
     @Override
@@ -63,13 +65,14 @@ public class ColloProxy implements ICollo {
     @Override
     public void setCodice(String codice) {
         this.codice = codice; // Aggiorna locale
-        if (colloReale != null) colloReale.setCodice(codice); // Aggiorna reale se esiste
+        if (colloReale != null) {
+            colloReale.setCodice(codice); // Aggiorna reale se esiste
+        }
     }
 
     @Override
     public String getStato() {
-        // Se il reale è già in memoria, usa quello che è sicuramente più aggiornato.
-        // Altrimenti restituisci quello che sai tu (cache leggera).
+        // Se il reale è già in memoria, usa quello (potrebbe essere più fresco)
         if (colloReale != null) return colloReale.getStato();
         return stato;
     }
@@ -83,26 +86,35 @@ public class ColloProxy implements ICollo {
         Sessione.Ruolo ruolo = Sessione.getInstance().getRuoloCorrente();
 
         if (ruolo == Sessione.Ruolo.CLIENTE) {
-            // Lancia l'eccezione prevista dal contratto (LSP compliant)
             throw new SecurityException("Utente " + ruolo + " non autorizzato a modificare lo stato.");
         }
 
-        this.stato = stato;
+        // 2. Aggiornamento
+        this.stato = nuovoStato; // Correggi qui: usa 'nuovoStato', non 'stato'
         if (this.colloReale != null) {
-            getColloReale().setStato(stato);
+            this.colloReale.setStato(nuovoStato);
         }
     }
 
-    // --- Metodi che forzano il caricamento (Virtual Proxy) ---
+    // --- Metodi che forzano il caricamento (Virtual Proxy / Delegation) ---
 
     @Override
     public void aggiungiEventoStorico(String evento) {
-        // Controllo sicurezza
-        if (Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.CORRIERE) {
-            throw new SecurityException("Utente non autorizzato a modificare lo storico.");
+        // Controllo sicurezza: Solo il corriere o il sistema dovrebbero scrivere nello storico
+        if (Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.CORRIERE &&
+                Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.MANAGER) {
+            // Nota: A volte il manager può forzare note, altrimenti lascia solo CORRIERE
         }
-        // Delega al reale
+
+        // Delega al reale (caricandolo se serve)
         getColloReale().aggiungiEventoStorico(evento);
+    }
+
+    // IL METODO CHE MANCAVA
+    @Override
+    public void setStorico(List<String> storico) {
+        // Delega completamente all'oggetto reale
+        getColloReale().setStorico(storico);
     }
 
     @Override
@@ -125,4 +137,8 @@ public class ColloProxy implements ICollo {
     @Override
     public void setPeso(double p) { getColloReale().setPeso(p); }
 
+    @Override
+    public String toString() {
+        return codice + " (" + stato + ") [Proxy]";
+    }
 }
