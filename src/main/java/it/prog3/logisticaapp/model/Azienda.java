@@ -7,16 +7,12 @@ import java.util.List;
  * Classe astratta Creator del pattern Factory Method.
  * <p>
  * Rappresenta l'astrazione di un'azienda di logistica.
- * Segue il principio Open-Closed (OCP): la logica di gestione della flotta è chiusa,
- * ma la creazione dei veicoli è aperta all'estensione tramite sottoclassi.
  * </p>
  */
 public abstract class Azienda {
 
-    // Lista della flotta (DIP: Dipende dall'astrazione IVeicolo)
-    protected List<IVeicolo> flotta;
-
     private String nome;
+    protected List<IVeicolo> flotta;
 
     public Azienda() {
         this.flotta = new ArrayList<>();
@@ -24,8 +20,26 @@ public abstract class Azienda {
 
     public Azienda(String nome) {
         this();
-        setNome(nome);
+        this.nome = nome;
     }
+
+    public String getNome() { return nome; }
+
+    public void setNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("Il nome dell'azienda non può essere vuoto.");
+        }
+        this.nome = nome;
+    }
+
+    public List<IVeicolo> getFlotta() {
+        return flotta;
+    }
+
+    public void setFlotta(List<IVeicolo> flotta) {
+        this.flotta = flotta;
+    }
+
 
     /**
      * Metodo che utilizza il Factory Method.
@@ -39,51 +53,39 @@ public abstract class Azienda {
      * @param codice  Il codice del nuovo veicolo.
      * @throws IllegalArgumentException se il tipo di veicolo non è supportato.
      */
-    public void nuovoVeicolo(String tipo, String codice) {
+    public void aggiungiVeicolo(String tipo, String codice) {
         // 1. Delegiamo la creazione alla sottoclasse (Factory Method)
         IVeicolo v = createVeicolo(tipo, codice);
 
-        // 2. Controllo robustezza: Se la factory fallisce, dobbiamo avvisare il chiamante!
+        // 2. Controllo robustezza
         if (v == null) {
             throw new IllegalArgumentException("Tipo veicolo non supportato: " + tipo);
         }
 
         // 3. Aggiungiamo alla flotta
         flotta.add(v);
-        System.out.println("[Azienda " + nome + "] Aggiunto veicolo: " + v);
+        System.out.println("[Azienda " + nome + "] Creato e aggiunto veicolo: " + v);
     }
 
     /**
-     * Il Factory Method astratto (Hook).
-     * Le sottoclassi concrete (es. AziendaConcreta) implementeranno lo switch di creazione.
+     * Metodo per aggiungere un veicolo già istanziato.
+     */
+    public void aggiungiVeicoloEsistente(IVeicolo v) {
+        if (v != null) {
+            flotta.add(v);
+        }
+    }
+
+    /**
+     * Il Factory Method astratto.
      *
      * @return Un'istanza di IVeicolo, o null se il tipo non è gestito.
      */
-    protected abstract IVeicolo createVeicolo(String tipo, String codice);
+    public abstract IVeicolo createVeicolo(String tipo, String codice);
 
-    // --- Getter e Setter ---
-
-    public List<IVeicolo> getFlotta() {
-        return flotta;
+    @Override
+    public String toString() {
+        return nome + " (" + flotta.size() + " veicoli)";
     }
 
-    /**
-     * Imposta la flotta (utile per il caricamento dal DB).
-     */
-    public void setFlotta(List<IVeicolo> flotta) {
-        if (flotta == null) {
-            this.flotta = new ArrayList<>(); // Defensive coding
-        } else {
-            this.flotta = flotta;
-        }
-    }
-
-    public String getNome() { return nome; }
-
-    public void setNome(String nome) {
-        if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Il nome dell'azienda non può essere vuoto.");
-        }
-        this.nome = nome;
-    }
 }
