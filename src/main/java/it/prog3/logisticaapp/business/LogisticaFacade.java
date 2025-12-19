@@ -87,12 +87,23 @@ public class LogisticaFacade {
         // 4. Esecuzione Strategy (Riempie i veicoli IN MEMORIA)
         packingContext.esegui(colliDaSpedire, flottaGlobale);
 
-        // 5. Salvataggio Persistente (Aggiorna solo lo stato 'CARICATO' nel DB)
+        // 5. Salvataggio Persistente: Ora salviamo anche DOVE sono finiti i pacchi
         int colliCaricati = 0;
-        for (ICollo c : colliDaSpedire) {
-            if (!"IN_PREPARAZIONE".equals(c.getStato())) {
-                gestoreDatabase.salvaCollo(c);
-                colliCaricati++;
+
+        // Iteriamo sui veicoli, perché sono loro che ora sanno quali pacchi hanno
+        for (IVeicolo v : flottaGlobale) {
+            for (ICollo c : v.getCarico()) {
+                // Se il collo è stato appena caricato (o riconfermiamo che è lì)
+                if ("CARICATO".equals(c.getStato()) || "IN_PREPARAZIONE".equals(c.getStato())) {
+
+                    // Aggiorniamo stato in memoria per sicurezza
+                    c.setStato("CARICATO");
+
+                    // Salviamo nel DB l'associazione: Pacco C01 -> Veicolo V01
+                    gestoreDatabase.associaColloVeicolo(c, v.getCodice());
+
+                    colliCaricati++;
+                }
             }
         }
 
