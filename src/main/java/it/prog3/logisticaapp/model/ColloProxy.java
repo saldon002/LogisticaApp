@@ -1,6 +1,6 @@
 package it.prog3.logisticaapp.model;
 
-import it.prog3.logisticaapp.business.Sessione; // Assicurati di avere questa classe
+import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.util.Observer;
 import java.util.List;
