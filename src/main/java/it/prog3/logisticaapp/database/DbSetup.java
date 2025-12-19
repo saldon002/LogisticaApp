@@ -43,7 +43,8 @@ public class DbSetup {
                     "peso REAL, " +
                     "stato TEXT, " +
                     "mittente TEXT, " +
-                    "destinatario TEXT" +
+                    "destinatario TEXT," +
+                    "veicolo_codice TEXT" +
                     ");";
             stmt.executeUpdate(sqlColli);
             System.out.println("-> Tabella 'colli' creata.");
