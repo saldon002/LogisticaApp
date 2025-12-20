@@ -8,34 +8,29 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * JavaFX App Entry Point
+ */
 public class App extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Carica la vista di Login
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/corriere.fxml"));
-        Parent root = fxmlLoader.load();
-
-        scene = new Scene(root, 600, 400);
-        stage.setTitle("LogisticaApp - Login");
+        // MODIFICA QUI: Carichiamo "login" come prima schermata
+        scene = new Scene(loadFXML("login"), 900, 600);
         stage.setScene(scene);
+        stage.setTitle("LogisticaApp - Gestionale Trasporti");
         stage.show();
     }
 
-    /**
-     * Metodo statico per cambiare schermata facilmente da qualsiasi controller.
-     * Es: App.setRoot("view/staff");
-     */
     public static void setRoot(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        scene.setRoot(fxmlLoader.load());
+        scene.setRoot(loadFXML(fxml));
+    }
 
-        // Opzionale: Ridimensiona la finestra se cambi schermata (es. da Login piccolo a Staff grande)
-        Stage stage = (Stage) scene.getWindow();
-        stage.sizeToScene();
-        stage.centerOnScreen();
+    private static Parent loadFXML(String fxml) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("view/" + fxml + ".fxml"));
+        return fxmlLoader.load();
     }
 
     public static void main(String[] args) {
