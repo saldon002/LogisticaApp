@@ -2,29 +2,46 @@ package it.prog3.logisticaapp.controller;
 
 import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.Sessione;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import java.io.IOException;
 
 public class LoginController {
 
+    /**
+     * Accesso Area MANAGER (Admin).
+     * Imposta il ruolo MANAGER nella sessione.
+     */
     @FXML
-    void onLoginManager(ActionEvent event) throws IOException {
+    private void onOpenManager() throws IOException {
+        // Impostiamo il ruolo corretto usando il metodo esistente
         Sessione.getInstance().setRuoloCorrente(Sessione.Ruolo.MANAGER);
-        App.setRoot("view/manager");
+        System.out.println("[Login] Ruolo impostato: MANAGER");
+
+        // Cambio scena
+        App.setRoot("manager");
     }
 
+    /**
+     * Accesso Area CORRIERE.
+     * Imposta il ruolo CORRIERE nella sessione.
+     */
     @FXML
-    void onLoginCorriere(ActionEvent event) throws IOException {
+    private void onOpenCorriere() throws IOException {
         Sessione.getInstance().setRuoloCorrente(Sessione.Ruolo.CORRIERE);
-        // Ora reindirizziamo alla view specifica del corriere
-        App.setRoot("view/corriere");
+        System.out.println("[Login] Ruolo impostato: CORRIERE");
+
+        App.setRoot("corriere");
     }
 
+    /**
+     * Accesso Area CLIENTE (Tracking).
+     * Imposta il ruolo CLIENTE nella sessione.
+     */
     @FXML
-    void onLoginCliente(ActionEvent event) throws IOException {
+    private void onOpenCliente() throws IOException {
         Sessione.getInstance().setRuoloCorrente(Sessione.Ruolo.CLIENTE);
-        // Reindirizziamo alla schermata di tracking
-        App.setRoot("view/cliente");
+        System.out.println("[Login] Ruolo impostato: CLIENTE");
+
+        App.setRoot("cliente");
     }
 }
