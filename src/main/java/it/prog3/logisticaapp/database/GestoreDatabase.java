@@ -90,8 +90,10 @@ public class GestoreDatabase {
         return listaAziende;
     }
 
-    // Metodo helper privato
-    private List<ICollo> getColliPerVeicolo(String codiceVeicolo) {
+    /**
+     * Recupera i colli associati a un veicolo specifico.
+     */
+    public List<ICollo> getColliPerVeicolo(String codiceVeicolo) {
         List<ICollo> lista = new ArrayList<>();
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_COLLI_PER_VEICOLO)) {
@@ -131,6 +133,10 @@ public class GestoreDatabase {
                     IVeicolo v = factoryHelper.createVeicolo(tipo, codice);
 
                     if (v != null) {
+                        List<ICollo> colliCaricati = getColliPerVeicolo(codice);
+                        for (ICollo c : colliCaricati) {
+                            v.caricaCollo(c);
+                        }
                         flotta.add(v);
                     }
                 }
@@ -318,6 +324,7 @@ public class GestoreDatabase {
         }
         return storico;
     }
+
 
     // =================================================================================
     // SEZIONE 4: AGGIORNAMENTI (Update)
