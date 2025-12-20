@@ -168,6 +168,7 @@ public class LogisticaFacade {
                 aggiornati++;
             }
         }
+        veicolo.notifyObservers();
         System.out.println("[Facade] Tappa registrata per " + aggiornati + " colli.");
     }
 
