@@ -1,6 +1,5 @@
 package it.prog3.logisticaapp.controller;
 
-import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.LogisticaFacade;
 import it.prog3.logisticaapp.model.ICollo;
 import it.prog3.logisticaapp.util.Observer;
@@ -10,7 +9,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
 import java.util.List;
 
 public class ClienteController implements Observer {
@@ -21,25 +19,35 @@ public class ClienteController implements Observer {
     @FXML private Label lblRisultato;
     @FXML private Label lblStato;
 
-    @FXML private VBox boxStorico; // Contenitore per nascondere/mostrare lo storico
+    // Nuovo bottone per attivare il Proxy/Caricamento
+    @FXML private Button btnVediStorico;
+
+    @FXML private VBox boxStorico;
     @FXML private ListView<String> listStorico;
 
     private LogisticaFacade facade;
 
-    // Manteniamo un riferimento al soggetto osservato (Subject)
     private Subject colloOsservato;
-    // Manteniamo anche il riferimento all'interfaccia ICollo per leggere i dati comodamente
     private ICollo colloCorrente;
+
+    // Flag per sapere se l'utente ha già chiesto di vedere i dettagli
+    private boolean dettagliCaricati = false;
 
     @FXML
     public void initialize() {
         this.facade = new LogisticaFacade();
-        this.boxStorico.setVisible(false); // Inizialmente nascosto
+        resetVista();
 
-        // Focus sul campo testo
-        Platform.runLater(new Runnable() {
-            @Override public void run() { txtCodice.requestFocus(); }
-        });
+        Platform.runLater(() -> txtCodice.requestFocus());
+    }
+
+    private void resetVista() {
+        lblRisultato.setText("Inserisci un codice per iniziare");
+        lblStato.setText("");
+        boxStorico.setVisible(false);
+        btnVediStorico.setVisible(false);
+        listStorico.getItems().clear();
+        dettagliCaricati = false;
     }
 
     @FXML
@@ -47,18 +55,13 @@ public class ClienteController implements Observer {
         String codice = txtCodice.getText().trim().toUpperCase();
 
         if (codice.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING, "Inserisci un codice spedizione.");
-            alert.show();
+            new Alert(Alert.AlertType.WARNING, "Inserisci un codice spedizione.").show();
             return;
         }
 
-        // Reset vista
-        listStorico.getItems().clear();
-        lblStato.setText("");
-        lblRisultato.setText("Ricerca in corso...");
-        boxStorico.setVisible(false);
+        resetVista();
 
-        // Rimuovi vecchio observer se presente (detach)
+        // Stacca observer precedente
         if (colloOsservato != null) {
             colloOsservato.detach(this);
             colloOsservato = null;
@@ -66,22 +69,21 @@ public class ClienteController implements Observer {
         }
 
         try {
-            // 1. Cerca il collo
+            // 1. Otteniamo il Proxy (leggero, solo codice e stato)
             ICollo collo = facade.cercaCollo(codice);
 
             if (collo == null) {
                 lblRisultato.setText("Spedizione non trovata.");
-                lblStato.setText("Verifica il codice inserito.");
                 return;
             }
 
             this.colloCorrente = collo;
-
-            // 2. Aggiorna GUI in base allo stato
             lblRisultato.setText("Spedizione: " + collo.getCodice());
-            aggiornaVistaDettaglio();
 
-            // 3. OBSERVER PATTERN: Attacchiamo l'observer se è un Subject
+            // 2. Aggiorniamo la vista base (senza caricare storico)
+            aggiornaStatoUI();
+
+            // 3. Observer
             if (collo instanceof Subject) {
                 this.colloOsservato = (Subject) collo;
                 this.colloOsservato.attach(this);
@@ -94,78 +96,87 @@ public class ClienteController implements Observer {
     }
 
     /**
-     * Metodo helper per popolare la vista usando 'colloCorrente'
+     * Aggiorna solo l'intestazione dello stato.
+     * NON carica lo storico dal DB.
      */
-    private void aggiornaVistaDettaglio() {
+    private void aggiornaStatoUI() {
         if (colloCorrente == null) return;
 
         String stato = colloCorrente.getStato();
 
-        if ("IN_PREPARAZIONE".equals(stato)) {
-            // Caso 1: Non ancora partito
+        // Gestione stati "Non Spedito"
+        if ("IN_PREPARAZIONE".equals(stato) || "CARICATO".equals(stato)) {
             lblStato.setText("Stato: NON ANCORA SPEDITO");
-            lblStato.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;"); // Arancione
+            lblStato.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
 
-            // Nascondiamo lo storico ma mostriamo un messaggio di cortesia
-            listStorico.getItems().clear();
-            listStorico.getItems().add("Il pacco è in preparazione presso i nostri magazzini.");
-            boxStorico.setVisible(true);
+            // Nascondiamo tutto ciò che riguarda lo storico
+            btnVediStorico.setVisible(false);
+            boxStorico.setVisible(false);
 
         } else if ("IN_TRANSITO".equals(stato)) {
-            // Caso 2: In viaggio
-            lblStato.setText("Stato: IN TRANSITO");
-            lblStato.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;"); // Verde
-            boxStorico.setVisible(true);
+            lblStato.setText("Stato: IN TRANSITO / SPEDITO");
+            lblStato.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
 
-            // Recupera storico completo
-            // Nota: Se colloCorrente è ColloReale, ha già lo storico dentro.
-            // Se è Proxy, facade.getStoricoCollo forza il caricamento.
+            // Qui sta la differenza: Mostriamo il bottone, MA NON CARICHIAMO I DATI
+            if (!dettagliCaricati) {
+                btnVediStorico.setVisible(true);
+                boxStorico.setVisible(false);
+            } else {
+                // Se l'utente aveva già cliccato, ricarichiamo la lista (caso aggiornamento live)
+                caricaStorico();
+            }
+        }
+    }
+
+    /**
+     * Azione del bottone "Visualizza Aggiornamenti".
+     * Questo è il momento in cui il Proxy carica il RealSubject (o fa la query pesante).
+     */
+    @FXML
+    public void onVediStorico() {
+        if (colloCorrente == null) return;
+
+        System.out.println("[ClienteController] Utente richiede storico -> Attivazione Proxy/DB...");
+
+        dettagliCaricati = true; // Ricordiamo che l'utente vuole vedere i dettagli
+        btnVediStorico.setVisible(false); // Nascondiamo il bottone
+        boxStorico.setVisible(true); // Mostriamo la lista
+
+        caricaStorico();
+    }
+
+    private void caricaStorico() {
+        try {
+            // Questa chiamata triggera il caricamento completo
             List<String> storico = facade.getStoricoCollo(colloCorrente.getCodice());
 
             listStorico.getItems().clear();
             if (storico.isEmpty()) {
-                listStorico.getItems().add("Nessun aggiornamento disponibile.");
+                listStorico.getItems().add("Nessun dettaglio disponibile al momento.");
             } else {
                 for (String evento : storico) {
                     listStorico.getItems().add(evento);
                 }
             }
-        } else {
-            // Altri stati
-            lblStato.setText("Stato: " + stato);
-            lblStato.setStyle("-fx-text-fill: #333333;");
-            boxStorico.setVisible(true);
+        } catch (Exception e) {
+            listStorico.getItems().add("Errore nel recupero dati.");
         }
     }
 
-    /**
-     * Metodo dell'interfaccia Observer.
-     * Chiamato quando il Subject notifica un cambiamento.
-     * NON ha parametri, quindi usiamo 'colloCorrente' che abbiamo salvato.
-     */
     @Override
     public void update() {
-        // Platform.runLater assicura che l'aggiornamento GUI avvenga nel thread JavaFX
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("[ClienteGUI] Ricevuta notifica update()! Ricarico vista...");
-                aggiornaVistaDettaglio();
-            }
+        Platform.runLater(() -> {
+            System.out.println("[ClienteGUI] Update ricevuto.");
+            // Aggiorniamo lo stato (es. se passa da PREPARAZIONE a TRANSITO)
+            aggiornaStatoUI();
         });
     }
 
     @FXML
     public void onLogout() {
-        // Pulizia Observer
-        if (this.colloOsservato != null) {
-            this.colloOsservato.detach(this);
-        }
-
+        if (colloOsservato != null) colloOsservato.detach(this);
         try {
-            App.setRoot("login");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            it.prog3.logisticaapp.App.setRoot("login");
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }
