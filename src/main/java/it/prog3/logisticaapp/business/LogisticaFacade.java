@@ -2,6 +2,9 @@ package it.prog3.logisticaapp.business;
 
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.model.*;
+import it.prog3.logisticaapp.util.FileLogger;
+import it.prog3.logisticaapp.util.Subject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,6 +90,8 @@ public class LogisticaFacade {
                 // Iteriamo sui colli caricati (sia parziali che pieni)
                 for (ICollo c : v.getCarico()) {
 
+                    attachLogger(c);
+
                     if (isPieno) {
                         // CASO A: Veicolo Pieno -> SPEDIAMO
                         if (!"IN_TRANSITO".equals(c.getStato())) {
@@ -156,6 +161,7 @@ public class LogisticaFacade {
         int aggiornati = 0;
 
         for (ICollo c : veicolo.getCarico()) {
+            attachLogger(c);
             if ("IN_TRANSITO".equals(c.getStato())) {
                 String messaggio = "Arrivato a centro di smistamento: " + luogo;
 
@@ -183,5 +189,14 @@ public class LogisticaFacade {
     public List<String> getStoricoCollo(String codice) {
         ColloReale c = gestoreDatabase.getColloRealeCompleto(codice);
         return (c != null) ? c.getStorico() : new ArrayList<>();
+    }
+
+    private void attachLogger(ICollo c) {
+        if (c instanceof Subject) {
+            Subject s = (Subject) c;
+
+            // 2. Logger su File (per persistenza e audit storico)
+            s.attach(new FileLogger(c));
+        }
     }
 }
