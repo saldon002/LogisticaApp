@@ -11,7 +11,7 @@ import java.util.List;
  * Estende {@link Subject} per ereditare la logica di notifica (Observer Pattern).
  * </p>
  */
-public class ColloReale implements ICollo {
+public class ColloReale extends Subject implements ICollo {
 
     // Incapsulamento rigoroso dei dati (SRP: Gestione stato)
     private String codice;
@@ -60,7 +60,10 @@ public class ColloReale implements ICollo {
     public String getStato() { return stato; }
 
     @Override
-    public void setStato(String stato) { this.stato = stato; }
+    public void setStato(String stato) {
+        this.stato = stato;
+        notifyObservers();
+    }
 
     @Override
     public double getPeso() { return peso; }
@@ -88,7 +91,8 @@ public class ColloReale implements ICollo {
         if (this.storico == null) {
             this.storico = new ArrayList<>();
         }
-        this.storico.add(evento);
+        this.storico.add(0, evento);
+        notifyObservers();
     }
 
     @Override
