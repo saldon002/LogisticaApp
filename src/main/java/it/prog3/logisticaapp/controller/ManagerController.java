@@ -1,5 +1,6 @@
 package it.prog3.logisticaapp.controller;
 
+import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.LogisticaFacade;
 import it.prog3.logisticaapp.business.NextFitStrategy;
 import it.prog3.logisticaapp.model.Azienda;
@@ -13,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.Callback;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ManagerController {
@@ -272,5 +274,14 @@ public class ManagerController {
     @FXML
     public void onRefresh() {
         aggiornaDati();
+    }
+
+    @FXML
+    public void onLogout() {
+        try {
+            App.setRoot("login");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
