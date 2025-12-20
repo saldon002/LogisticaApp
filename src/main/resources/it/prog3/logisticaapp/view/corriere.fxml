@@ -4,57 +4,101 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="500.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.prog3.logisticaapp.controller.CorriereController">
-    <top>
-        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #f39c12;" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
-            </padding>
+<AnchorPane prefHeight="550.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.prog3.logisticaapp.controller.CorriereController">
+    <children>
+        <VBox spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <Label text="Terminale Corriere" textFill="WHITE">
-                    <font>
-                        <Font name="System Bold" size="18.0" />
-                    </font>
-                </Label>
-                <HBox HBox.hgrow="ALWAYS" />
-                <Button mnemonicParsing="false" onAction="#onLogout" text="Logout" />
-            </children>
-        </HBox>
-    </top>
-    <center>
-        <VBox alignment="TOP_CENTER" spacing="20.0" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
-            </padding>
-            <children>
-                <Label text="Registrazione Nuova Tappa" textFill="#e67e22">
-                    <font>
-                        <Font size="22.0" />
-                    </font>
-                </Label>
-                <Label text="Seleziona il veicolo che stai guidando e la posizione attuale per aggiornare il tracking di tutti i pacchi a bordo." textAlignment="CENTER" wrapText="true" />
+                <HBox alignment="CENTER_LEFT" style="-fx-background-color: #2c3e50; -fx-padding: 15;">
+                    <children>
+                        <Label text="LogisticaApp - Modulo Corriere" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold" size="18.0" />
+                            </font>
+                        </Label>
+                        <HBox HBox.hgrow="ALWAYS" />
+                        <Label fx:id="lblBenvenuto" text="Pannello Operatore" textFill="#bdc3c7">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </HBox>
 
-                <VBox maxWidth="400.0" spacing="10.0" style="-fx-background-color: #ecf0f1; -fx-background-radius: 10;">
+                <VBox spacing="5.0">
                     <padding>
-                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                        <Insets left="15.0" right="15.0" top="10.0" />
                     </padding>
                     <children>
-                        <Label text="Seleziona Veicolo:" />
-                        <ComboBox fx:id="comboVeicoli" maxWidth="1.7976931348623157E308" promptText="-- Scegli Veicolo --" />
+                        <Label text="IDENTIFICAZIONE MEZZO" textFill="#7f8c8d">
+                            <font>
+                                <Font name="System Bold" size="10.0" />
+                            </font>
+                        </Label>
+                        <Label text="Seleziona il veicolo da tracciare:" textFill="#2c3e50">
+                            <font>
+                                <Font size="14.0" />
+                            </font>
+                        </Label>
+                        <ComboBox fx:id="comboVeicoli" maxWidth="1.7976931348623157E308" prefHeight="35.0" promptText="-- Seleziona dalla lista globale --" style="-fx-font-size: 14;" />
+                    </children>
+                </VBox>
 
-                        <Label text="Luogo Attuale (Hub/Città):" />
-                        <TextField fx:id="txtLuogo" promptText="Es. Centro Smistamento Napoli" />
+                <Separator prefWidth="200.0">
+                    <VBox.margin>
+                        <Insets top="5.0" />
+                    </VBox.margin>
+                </Separator>
 
-                        <Button fx:id="btnRegistra" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRegistraTappa" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;" text="📍 AGGIORNA POSIZIONE" />
+                <VBox spacing="5.0" VBox.vgrow="ALWAYS">
+                    <padding>
+                        <Insets left="15.0" right="15.0" />
+                    </padding>
+                    <children>
+                        <Label text="MANIFESTO DI CARICO (Pacchi a bordo)" textFill="#7f8c8d">
+                            <font>
+                                <Font name="System Bold" size="10.0" />
+                            </font>
+                        </Label>
+                        <ListView fx:id="listCarico" style="-fx-background-color: #fdfdfd; -fx-border-color: #bdc3c7;" VBox.vgrow="ALWAYS" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="10.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-width: 1 0 0 0;">
+                    <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
+                    </padding>
+                    <children>
+                        <Label text="AGGIORNAMENTO POSIZIONE" textFill="#2c3e50">
+                            <font>
+                                <Font name="System Bold" size="12.0" />
+                            </font>
+                        </Label>
+                        <HBox spacing="15.0">
+                            <children>
+                                <TextField fx:id="txtLuogo" promptText="Inserisci luogo attuale (es. Hub Bologna)" style="-fx-font-size: 13;" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="btnAggiorna" defaultButton="true" mnemonicParsing="false" onAction="#onAggiornaPosizione" prefWidth="150.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-cursor: hand;" text="REGISTRA TAPPA">
+                                    <font>
+                                        <Font name="System Bold" size="13.0" />
+                                    </font>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Label fx:id="lblStatus" text="Stato: In attesa di selezione..." textFill="#7f8c8d">
+                            <font>
+                                <Font name="System Italic" size="12.0" />
+                            </font>
+                        </Label>
                     </children>
                 </VBox>
             </children>
         </VBox>
-    </center>
-</BorderPane>
+    </children>
+</AnchorPane>
