@@ -80,21 +80,18 @@ public class ColloProxy implements ICollo {
     /**
      * PROTECTION PROXY: Controlla i permessi prima di scrivere.
      */
+    // In ColloProxy.java
     @Override
-    public void setStato(String nuovoStato) {
-        // 1. Controllo Sicurezza (Protection)
-        Sessione.Ruolo ruolo = Sessione.getInstance().getRuoloCorrente();
-
-        if (ruolo == Sessione.Ruolo.CLIENTE) {
-            throw new SecurityException("Utente " + ruolo + " non autorizzato a modificare lo stato.");
+    public void setStato(String stato) {
+        // PROTEZIONE: Solo Manager e Corriere possono scrivere
+        if (Sessione.getInstance().getRuoloCorrente() == Sessione.Ruolo.CLIENTE) {
+            throw new SecurityException("Permesso negato: Il cliente non può modificare lo stato.");
         }
-
-        // 2. Aggiornamento
-        this.stato = nuovoStato; // Correggi qui: usa 'nuovoStato', non 'stato'
-        if (this.colloReale != null) {
-            this.colloReale.setStato(nuovoStato);
-        }
+        // Delega al reale
+        getColloReale().setStato(stato);
     }
+
+// Fai lo stesso per setMittente, setDestinatario, setPeso se vuoi blindare tutto.
 
     // --- Metodi che forzano il caricamento (Virtual Proxy / Delegation) ---
 
