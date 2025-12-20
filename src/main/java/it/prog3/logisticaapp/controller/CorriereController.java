@@ -4,10 +4,13 @@ import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.LogisticaFacade;
 import it.prog3.logisticaapp.model.ICollo;
 import it.prog3.logisticaapp.model.IVeicolo;
+import it.prog3.logisticaapp.util.Observer;
+import it.prog3.logisticaapp.util.Subject;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
 
