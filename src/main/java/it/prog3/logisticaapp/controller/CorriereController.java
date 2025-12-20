@@ -1,5 +1,6 @@
 package it.prog3.logisticaapp.controller;
 
+import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.LogisticaFacade;
 import it.prog3.logisticaapp.model.ICollo;
 import it.prog3.logisticaapp.model.IVeicolo;
@@ -10,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
 
+import java.io.IOException;
 import java.util.List;
 
 public class CorriereController {
@@ -135,6 +137,15 @@ public class CorriereController {
 
         } catch (Exception e) {
             lblStatus.setText("Errore: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void onLogout() {
+        try {
+            App.setRoot("login");
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
