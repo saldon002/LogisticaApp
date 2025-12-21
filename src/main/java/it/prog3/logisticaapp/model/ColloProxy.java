@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class ColloProxy implements ICollo {
 
-    private static final long serialVersionUID = 1L;
+
 
     // Riferimento all'oggetto reale (Lazy).
     private ColloReale colloReale;
