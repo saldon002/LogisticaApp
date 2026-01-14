@@ -10,7 +10,7 @@ import java.util.List;
  * Data Access Object (DAO) che implementa le operazioni CRUD.
  * Gestisce la persistenza di Veicoli, Colli e Storico.
  */
-public class GestoreDatabase {
+public class GestoreDatabase implements IDataLoader {
 
     // Query SQL
     private static final String SELECT_COLLI_PREPARAZIONE = "SELECT codice, stato FROM colli WHERE stato = 'IN_PREPARAZIONE'";
@@ -103,7 +103,7 @@ public class GestoreDatabase {
                 while(rs.next()) {
                     // Creiamo il proxy o il reale (qui va bene reale leggero o proxy)
                     // Dato che sono già caricati, usiamo ColloProxy per coerenza
-                    lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato")));
+                    lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato"), this));
                 }
             }
         } catch (SQLException e) {
@@ -243,7 +243,7 @@ public class GestoreDatabase {
              ResultSet rs = st.executeQuery(SELECT_COLLI_PREPARAZIONE)) {
 
             while (rs.next()) {
-                lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato")));
+                lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato"), this));
             }
 
         } catch (SQLException e) {
@@ -263,7 +263,7 @@ public class GestoreDatabase {
 
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    return new ColloProxy(rs.getString("codice"), rs.getString("stato"));
+                    return new ColloProxy(rs.getString("codice"), rs.getString("stato"), this);
                 }
             }
         } catch (SQLException e) {
