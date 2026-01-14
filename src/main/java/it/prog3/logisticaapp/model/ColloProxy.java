@@ -80,18 +80,9 @@ public class ColloProxy implements ICollo {
     /**
      * PROTECTION PROXY: Controlla i permessi prima di scrivere.
      */
-    // In ColloProxy.java
-    @Override
-    public void setStato(String stato) {
-        // PROTEZIONE: Solo Manager e Corriere possono scrivere
-        if (Sessione.getInstance().getRuoloCorrente() == Sessione.Ruolo.CLIENTE) {
-            throw new SecurityException("Permesso negato: Il cliente non può modificare lo stato.");
-        }
-        // Delega al reale
-        getColloReale().setStato(stato);
-    }
 
-// Fai lo stesso per setMittente, setDestinatario, setPeso se vuoi blindare tutto.
+
+
 
     // --- Metodi che forzano il caricamento (Virtual Proxy / Delegation) ---
 
@@ -121,21 +112,55 @@ public class ColloProxy implements ICollo {
 
     @Override
     public String getMittente() { return getColloReale().getMittente(); }
-    @Override
-    public void setMittente(String m) { getColloReale().setMittente(m); }
+
 
     @Override
     public String getDestinatario() { return getColloReale().getDestinatario(); }
-    @Override
-    public void setDestinatario(String d) { getColloReale().setDestinatario(d); }
+
 
     @Override
     public double getPeso() { return getColloReale().getPeso(); }
-    @Override
-    public void setPeso(double p) { getColloReale().setPeso(p); }
+
 
     @Override
     public String toString() {
         return codice + " (" + stato + ") [Proxy]";
+    }
+
+
+    // ==========================================
+    // PROTECTION PROXY: SETTERS BLINDATI
+    // ==========================================
+
+    private void checkPermessiScrittura() {
+        if (Sessione.getInstance().getRuoloCorrente() == Sessione.Ruolo.CLIENTE) {
+            throw new SecurityException("Accesso Negato: I clienti non possono modificare i dati del collo.");
+        }
+    }
+
+    @Override
+    public void setStato(String stato) {
+        checkPermessiScrittura(); // Controllo centralizzato
+        getColloReale().setStato(stato);
+        // Aggiorniamo anche la cache locale per coerenza immediata
+        this.stato = stato;
+    }
+
+    @Override
+    public void setMittente(String mittente) {
+        checkPermessiScrittura();
+        getColloReale().setMittente(mittente);
+    }
+
+    @Override
+    public void setDestinatario(String destinatario) {
+        checkPermessiScrittura();
+        getColloReale().setDestinatario(destinatario);
+    }
+
+    @Override
+    public void setPeso(double peso) {
+        checkPermessiScrittura();
+        getColloReale().setPeso(peso);
     }
 }
