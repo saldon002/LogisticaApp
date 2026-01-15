@@ -8,70 +8,61 @@ import java.util.List;
 /**
  * Concrete Strategy: Implementazione dell'algoritmo Next Fit.
  * <p>
- * LOGICA NEXT FIT:
- * Mantiene un riferimento all'ultimo veicolo utilizzato.
- * Se un collo entra nel veicolo corrente, lo aggiunge.
- * Se non entra, chiude il veicolo corrente, passa al successivo nella lista e prova ad aggiungerlo lì.
- * Non controlla mai i veicoli precedenti.
+ * Algoritmo O(N): Scorre i colli e i veicoli una sola volta.
+ * Mantiene aperto solo il veicolo corrente. Se il collo non entra,
+ * chiude il veicolo e passa al successivo (senza backtracking).
  * </p>
  */
-public class NextFitStrategy implements PackingStrategy { // Usa IPackingStrategy
+public class NextFitStrategy implements PackingStrategy {
 
     @Override
     public void eseguiPacking(List<ICollo> colli, List<IVeicolo> flotta) {
-        if (colli == null || colli.isEmpty() || flotta == null || flotta.isEmpty()) {
-            System.out.println("[NextFit] Dati insufficienti per avviare l'algoritmo.");
+        // Controllo robustezza
+        if (colli == null || colli.isEmpty()) {
+            System.out.println("[NextFit] Nessun collo da processare.");
             return;
         }
+        if (flotta == null || flotta.isEmpty()) {
+            throw new IllegalStateException("Impossibile avviare il carico: Flotta vuota.");
+        }
 
-        System.out.println("[NextFit] Avvio su " + colli.size() + " colli e " + flotta.size() + " veicoli.");
+        System.out.println("[NextFit] Avvio algoritmo su " + colli.size() + " colli.");
 
-        // Usiamo l'iteratore per gestire lo scorrimento progressivo della flotta
         Iterator<IVeicolo> veicoloIterator = flotta.iterator();
-
-        // Iniziamo dal primo veicolo
-        IVeicolo veicoloCorrente = veicoloIterator.next();
+        IVeicolo veicoloCorrente = veicoloIterator.next(); // Sicuro perché flotta non è vuota
 
         for (ICollo collo : colli) {
-
-            // 1. Controllo Stato: Deve corrispondere a quello nel DB (GestoreDatabase)
-            // Se nel DB usi "IN_PREPARAZIONE", devi usare quella stringa qui.
+            // Filtriamo solo i colli pronti (Difesa in profondità)
             if (!"IN_PREPARAZIONE".equalsIgnoreCase(collo.getStato())) {
-                continue; // Ignora colli già processati
+                continue;
             }
 
-            // 2. Prova inserimento nel veicolo corrente
-            boolean caricato = veicoloCorrente.caricaCollo(collo);
+            // Tenta inserimento nel veicolo corrente
+            boolean inserito = veicoloCorrente.caricaCollo(collo);
 
-            if (caricato) {
-                // Successo! Aggiorna stato e logga
-                collo.setStato("CARICATO");
-                System.out.println(" -> Collo " + collo.getCodice() + " caricato su " + veicoloCorrente.getCodice());
+            if (inserito) {
+                markAsCaricato(collo, veicoloCorrente);
             } else {
-                // Fallimento: Il veicolo è pieno (o il collo è troppo grande).
-                // NextFit dice: passa al prossimo e non guardare indietro.
-
+                // NEXT FIT: Se non entra, chiudi e passa al prossimo
                 if (veicoloIterator.hasNext()) {
-                    System.out.println(" -> Veicolo " + veicoloCorrente.getCodice() + " pieno/inadatto. Cambio veicolo.");
-
-                    // Switch al prossimo
                     veicoloCorrente = veicoloIterator.next();
-
-                    // Riprova sul nuovo veicolo (appena aperto, quindi vuoto)
+                    // Riprova nel nuovo veicolo (vuoto)
                     if (veicoloCorrente.caricaCollo(collo)) {
-                        collo.setStato("CARICATO");
-                        System.out.println(" -> Collo " + collo.getCodice() + " caricato su NUOVO veicolo " + veicoloCorrente.getCodice());
+                        markAsCaricato(collo, veicoloCorrente);
                     } else {
-                        // Se non entra nemmeno in un veicolo vuoto, il collo è fisicamente troppo grande
-                        System.err.println(" -> ERRORE: Il collo " + collo.getCodice() + " è troppo grande/pesante per il veicolo " + veicoloCorrente.getTipo());
+                        // Caso critico: Il collo è più grande della capienza totale del veicolo vuoto
+                        System.err.println("ERRORE: Collo " + collo.getCodice() + " troppo grande per " + veicoloCorrente.getTipo());
                     }
                 } else {
-                    // Non ci sono più veicoli nella flotta
-                    System.err.println(" -> FLOTTA ESAURITA! Impossibile caricare collo " + collo.getCodice());
-                    // Col NextFit, se finiscono i veicoli, solitamente ci si ferma o si lasciano a terra i restanti.
+                    System.err.println("FLOTTA ESAURITA: Impossibile caricare collo " + collo.getCodice());
+                    // Qui l'algoritmo si ferma o lascia a terra i restanti.
                 }
             }
         }
-        System.out.println("[NextFit] Procedura terminata.");
+    }
+
+    private void markAsCaricato(ICollo c, IVeicolo v) {
+        c.setStato("CARICATO");
+        System.out.println(" -> [OK] Collo " + c.getCodice() + " >> Veicolo " + v.getCodice());
     }
 }
