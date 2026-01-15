@@ -4,15 +4,20 @@ import it.prog3.logisticaapp.model.*;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data Access Object (DAO) che implementa le operazioni CRUD.
  * Gestisce la persistenza di Veicoli, Colli e Storico.
+ * Implementa IDataLoader per supportare il Lazy Loading del Proxy (DIP).
  */
 public class GestoreDatabase implements IDataLoader {
 
-    // Query SQL
+    // =================================================================================
+    // QUERY SQL (Costanti)
+    // =================================================================================
     private static final String SELECT_COLLI_PREPARAZIONE = "SELECT codice, stato FROM colli WHERE stato = 'IN_PREPARAZIONE'";
     private static final String SELECT_COLLO_BASE = "SELECT codice, stato FROM colli WHERE codice = ?";
     private static final String SELECT_COLLO_FULL = "SELECT * FROM colli WHERE codice = ?";
@@ -32,16 +37,20 @@ public class GestoreDatabase implements IDataLoader {
     public GestoreDatabase() {}
 
     // =================================================================================
-    // SEZIONE 1: MANAGER & FLOTTA (Lettura)
+    // SEZIONE 1: MANAGER & FLOTTA (Lettura Ottimizzata)
     // =================================================================================
 
     /**
      * Metodo per il MANAGER: Recupera l'intera flotta dal DB raggruppata per Azienda.
-     * Serve per popolare la GUI che mostra l'albero Azienda -> Veicoli.
-     * * @return Lista di oggetti Azienda, ciascuno con la propria flotta popolata.
+     * <p>
+     * OTTIMIZZAZIONE: Utilizza una HashMap per raggruppare le aziende in O(N)
+     * invece di scorrere la lista per ogni veicolo (O(N^2)).
+     * </p>
+     * @return Lista di oggetti Azienda, ciascuno con la propria flotta popolata.
      */
     public List<Azienda> getFlottaAll() {
-        List<Azienda> listaAziende = new ArrayList<>();
+        // Mappa per accesso rapido alle aziende già create (Nome -> Oggetto Azienda)
+        Map<String, Azienda> mappaAziende = new HashMap<>();
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              Statement stmt = conn.createStatement();
@@ -52,42 +61,35 @@ public class GestoreDatabase implements IDataLoader {
                 String codiceVeicolo = rs.getString("codice");
                 String tipo = rs.getString("tipo");
 
-                // 1. Gestione Azienda
-                Azienda aziendaCorrente = null;
-                for (Azienda a : listaAziende) {
-                    if (a.getNome().equalsIgnoreCase(nomeAzienda)) {
-                        aziendaCorrente = a;
-                        break;
-                    }
-                }
+                // 1. Recupera o crea l'azienda (in O(1))
+                Azienda aziendaCorrente = mappaAziende.get(nomeAzienda);
                 if (aziendaCorrente == null) {
+                    // Nota: Qui c'è una dipendenza diretta da AziendaConcreta, accettabile in un DAO.
                     aziendaCorrente = new AziendaConcreta(nomeAzienda);
-                    listaAziende.add(aziendaCorrente);
+                    mappaAziende.put(nomeAzienda, aziendaCorrente);
                 }
 
-                // 2. Creazione Veicolo
+                // 2. Creazione Veicolo tramite Factory Method dell'Azienda
                 try {
                     IVeicolo v = aziendaCorrente.createVeicolo(tipo, codiceVeicolo);
                     if (v != null) {
-                        // === NOVITÀ: CARICAMENTO DEI COLLI DAL DB ===
-                        // Recuperiamo i colli che risultano caricati su questo veicolo
+                        // Carichiamo i colli associati al veicolo
                         List<ICollo> colliCaricati = getColliPerVeicolo(codiceVeicolo);
-
-                        // Li aggiungiamo manualmente al veicolo in memoria
                         for (ICollo c : colliCaricati) {
                             v.caricaCollo(c);
                         }
-
                         aziendaCorrente.aggiungiVeicoloEsistente(v);
                     }
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Skip veicolo: " + codiceVeicolo);
+                    System.err.println("Skip veicolo non supportato: " + codiceVeicolo);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Errore caricamento flotta", e);
         }
-        return listaAziende;
+
+        // Restituisce i valori della mappa come lista
+        return new ArrayList<>(mappaAziende.values());
     }
 
     /**
@@ -101,9 +103,12 @@ public class GestoreDatabase implements IDataLoader {
             ps.setString(1, codiceVeicolo);
             try (ResultSet rs = ps.executeQuery()) {
                 while(rs.next()) {
-                    // Creiamo il proxy o il reale (qui va bene reale leggero o proxy)
-                    // Dato che sono già caricati, usiamo ColloProxy per coerenza
-                    lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato"), this));
+                    // Creiamo il Proxy passando 'this' come IDataLoader
+                    lista.add(new ColloProxy(
+                            rs.getString("codice"),
+                            rs.getString("stato"),
+                            this
+                    ));
                 }
             }
         } catch (SQLException e) {
@@ -117,7 +122,6 @@ public class GestoreDatabase implements IDataLoader {
      */
     public List<IVeicolo> getFlottaAzienda(String nomeAzienda) {
         List<IVeicolo> flotta = new ArrayList<>();
-        // Usiamo un'istanza helper solo per accedere al factory method
         AziendaConcreta factoryHelper = new AziendaConcreta(nomeAzienda);
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
@@ -151,12 +155,7 @@ public class GestoreDatabase implements IDataLoader {
     // SEZIONE 2: SETUP & TESTER (Scrittura Dati Iniziali)
     // =================================================================================
 
-    /**
-     * Inserisce un nuovo collo nel DB.
-     * Utile per il Setup/Tester iniziale.
-     */
     public void inserisciCollo(ICollo c) {
-
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(INSERT_COLLO)) {
 
@@ -174,16 +173,13 @@ public class GestoreDatabase implements IDataLoader {
         }
     }
 
-    /**
-     * Aggiorna il collo salvando il nuovo stato E il veicolo su cui è stato caricato.
-     */
     public void associaColloVeicolo(ICollo c, String codiceVeicolo) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(UPDATE_COLLO_CARICATO)) {
 
-            ps.setString(1, c.getStato());        // Es. "CARICATO"
-            ps.setString(2, codiceVeicolo);       // Es. "V01"
-            ps.setString(3, c.getCodice());       // Es. "C01"
+            ps.setString(1, c.getStato());
+            ps.setString(2, codiceVeicolo);
+            ps.setString(3, c.getCodice());
 
             ps.executeUpdate();
 
@@ -192,23 +188,13 @@ public class GestoreDatabase implements IDataLoader {
         }
     }
 
-    /**
-     * Inserisce un'intera azienda e tutta la sua flotta nel DB.
-     * Utile per il Setup/Tester iniziale (popola il DB partendo dagli oggetti Java).
-     */
     public void inserisciAzienda(Azienda azienda) {
         if (azienda == null) return;
-
-        // Salviamo ogni veicolo della flotta
         for (IVeicolo v : azienda.getFlotta()) {
             inserisciVeicolo(v, azienda.getNome());
         }
     }
 
-    /**
-     * Inserisce un singolo veicolo nel DB.
-     * Prende i dati dall'oggetto Java.
-     */
     public void inserisciVeicolo(IVeicolo v, String nomeAzienda) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement ps = conn.prepareStatement(INSERT_VEICOLO)) {
@@ -217,7 +203,6 @@ public class GestoreDatabase implements IDataLoader {
             ps.setString(2, v.getTipo());
             ps.setInt(3, v.getCapienza());
             ps.setString(4, nomeAzienda);
-            //ps.setString(5, "DISPONIBILE");
 
             ps.executeUpdate();
             System.out.println("[DB] Inserito veicolo: " + v.getCodice() + " per " + nomeAzienda);
@@ -228,12 +213,12 @@ public class GestoreDatabase implements IDataLoader {
     }
 
     // =================================================================================
-    // SEZIONE 3: COLLI (Lettura Proxy & Real)
+    // SEZIONE 3: COLLI (Lettura Proxy & Real - Implementazione IDataLoader)
     // =================================================================================
 
     /**
      * Recupera la lista di tutti i colli in stato 'IN_PREPARAZIONE'.
-     * Restituisce oggetti Proxy leggeri.
+     * Restituisce oggetti Proxy leggeri iniettando 'this' come loader.
      */
     public List<ICollo> getColliInPreparazione() {
         List<ICollo> lista = new ArrayList<>();
@@ -243,7 +228,12 @@ public class GestoreDatabase implements IDataLoader {
              ResultSet rs = st.executeQuery(SELECT_COLLI_PREPARAZIONE)) {
 
             while (rs.next()) {
-                lista.add(new ColloProxy(rs.getString("codice"), rs.getString("stato"), this));
+                // Dependency Injection: Passiamo 'this' al Proxy
+                lista.add(new ColloProxy(
+                        rs.getString("codice"),
+                        rs.getString("stato"),
+                        this
+                ));
             }
 
         } catch (SQLException e) {
@@ -252,9 +242,6 @@ public class GestoreDatabase implements IDataLoader {
         return lista;
     }
 
-    /**
-     * Cerca un singolo collo tramite il codice (Proxy).
-     */
     public ICollo getColloProxy(String codice) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(SELECT_COLLO_BASE)) {
@@ -263,7 +250,12 @@ public class GestoreDatabase implements IDataLoader {
 
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    return new ColloProxy(rs.getString("codice"), rs.getString("stato"), this);
+                    // Dependency Injection: Passiamo 'this' al Proxy
+                    return new ColloProxy(
+                            rs.getString("codice"),
+                            rs.getString("stato"),
+                            this
+                    );
                 }
             }
         } catch (SQLException e) {
@@ -273,9 +265,11 @@ public class GestoreDatabase implements IDataLoader {
     }
 
     /**
+     * Implementazione di IDataLoader.
      * Recupera l'oggetto Reale completo (Dati collo + Storico).
      * Chiamato dal Proxy quando serve caricare i dettagli.
      */
+    @Override
     public ColloReale getColloRealeCompleto(String codice) {
         ColloReale reale = null;
 
@@ -286,7 +280,6 @@ public class GestoreDatabase implements IDataLoader {
 
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    // Mappatura JavaBean (tabella -> oggetto)
                     reale = new ColloReale();
                     reale.setCodice(rs.getString("codice"));
                     reale.setStato(rs.getString("stato"));
@@ -294,22 +287,17 @@ public class GestoreDatabase implements IDataLoader {
                     reale.setMittente(rs.getString("mittente"));
                     reale.setDestinatario(rs.getString("destinatario"));
 
-                    // Popola la lista complessa (relazione one-to-many)
                     reale.setStorico(getStoricoPerCollo(codice));
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Errore DB in getColloRealeCompleto. Caricamento completo collo " + codice, e);
+            throw new RuntimeException("Errore DB in getColloRealeCompleto per " + codice, e);
         }
         return reale;
     }
 
-    /**
-     * Metodo ausiliario privato per recuperare lo storico spostamenti.
-     */
     private List<String> getStoricoPerCollo(String codiceCollo) {
         List<String> storico = new ArrayList<>();
-
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(SELECT_STORICO)) {
 
@@ -325,21 +313,16 @@ public class GestoreDatabase implements IDataLoader {
         return storico;
     }
 
-
     // =================================================================================
     // SEZIONE 4: AGGIORNAMENTI (Update)
     // =================================================================================
 
-    /**
-     * Aggiorna lo stato di un collo esistente.
-     */
     public void salvaCollo(ICollo c) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(UPDATE_STATO_COLLO)) {
 
             st.setString(1, c.getStato());
             st.setString(2, c.getCodice());
-
             st.executeUpdate();
 
         } catch (SQLException e) {
@@ -347,16 +330,12 @@ public class GestoreDatabase implements IDataLoader {
         }
     }
 
-    /**
-     * Inserisce una nuova riga nella tabella storico.
-     */
     public void aggiornaTracking(String codiceCollo, String descrizione) {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              PreparedStatement st = conn.prepareStatement(INSERT_STORICO)) {
 
             st.setString(1, codiceCollo);
             st.setString(2, descrizione);
-
             st.executeUpdate();
 
         } catch (SQLException e) {
@@ -364,14 +343,11 @@ public class GestoreDatabase implements IDataLoader {
         }
     }
 
-    /**
-     * Utility per pulire le tabelle (utile nei test).
-     */
     public void resetTabelle() {
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate("DELETE FROM veicoli");
-            // stmt.executeUpdate("DELETE FROM colli"); // Decommentare se necessario
+            // stmt.executeUpdate("DELETE FROM colli");
             System.out.println("[DB] Tabelle veicoli resettata.");
         } catch (SQLException e) {
             e.printStackTrace();
