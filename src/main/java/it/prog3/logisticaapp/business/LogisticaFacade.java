@@ -9,39 +9,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Facade (Service Layer).
- * Gestisce la logica del Manager (Carico) e del Corriere (Tappe/Tracking).
+ * Facade Pattern.
+ * Fornisce un'interfaccia semplificata per la logica di business complessa.
+ * Nasconde la complessità delle interazioni tra Database, Strategy e Model.
  */
 public class LogisticaFacade {
 
     private final GestoreDatabase gestoreDatabase;
     private final PackingContext packingContext;
 
-    // Cache per il Manager (mantiene i veicoli caricati in memoria durante la sessione)
-    private List<Azienda> elencoAziende;
+    // Cache semplice per mantenere lo stato della flotta durante la sessione Manager
+    private List<Azienda> elencoAziendeCache;
 
     public LogisticaFacade() {
+        // Iniezione delle dipendenze (Hardcoded per semplicità, ma idealmente iniettate)
         this.gestoreDatabase = new GestoreDatabase();
+        // Default Strategy: Next Fit
         this.packingContext = new PackingContext(new NextFitStrategy());
-
-        // Caricamento iniziale per il Manager
-        this.elencoAziende = gestoreDatabase.getFlottaAll();
-    }
-
-    public void setStrategy(PackingStrategy strategy) {
-        this.packingContext.setStrategy(strategy);
     }
 
     // =========================================================================
-    // SEZIONE 1: METODI MANAGER
+    // SEZIONE MANAGER (Carico Merce)
     // =========================================================================
 
     public List<Azienda> getAziendeAll() {
-        // Lazy loading / Refresh se null
-        if (this.elencoAziende == null) {
-            this.elencoAziende = gestoreDatabase.getFlottaAll();
+        if (this.elencoAziendeCache == null) {
+            this.elencoAziendeCache = gestoreDatabase.getFlottaAll();
         }
-        return this.elencoAziende;
+        return this.elencoAziendeCache;
     }
 
     public List<ICollo> getColliInAttesa() {
@@ -49,154 +44,116 @@ public class LogisticaFacade {
     }
 
     /**
-     * Esegue il caricamento (Strategy), cambia stato a IN_TRANSITO e inizializza lo storico.
+     * Cuore della Business Logic:
+     * 1. Recupera i dati.
+     * 2. Esegue l'algoritmo di Bin Packing (Strategy).
+     * 3. Persiste i cambiamenti sul DB.
      */
     public void eseguiCarico() {
-        System.out.println("[Facade] Avvio procedura di carico...");
+        System.out.println("[Facade] Inizio procedura di carico...");
 
-        // 1. Recupero Dati
-        List<ICollo> colliDaSpedire = gestoreDatabase.getColliInPreparazione();
+        // 1. Recupero Colli
+        List<ICollo> colli = getColliInAttesa();
+        if (colli.isEmpty()) throw new IllegalStateException("Nessun collo da spedire.");
 
-        if (this.elencoAziende == null || this.elencoAziende.isEmpty()) {
-            this.elencoAziende = gestoreDatabase.getFlottaAll();
-        }
-
-        if (colliDaSpedire.isEmpty()) {
-            throw new IllegalStateException("Nessun collo da spedire in magazzino.");
-        }
-
-        // 2. Creazione "Flotta Globale"
+        // 2. Recupero Flotta (Flattening: Da Lista Aziende a Lista Veicoli)
         List<IVeicolo> flottaGlobale = new ArrayList<>();
-        for (Azienda az : this.elencoAziende) {
+        for (Azienda az : getAziendeAll()) {
             flottaGlobale.addAll(az.getFlotta());
         }
+        if (flottaGlobale.isEmpty()) throw new IllegalStateException("Nessun veicolo disponibile.");
 
-        if (flottaGlobale.isEmpty()) {
-            throw new IllegalStateException("Nessun veicolo disponibile.");
-        }
+        // 3. Esecuzione Strategy (Modifica gli oggetti in memoria)
+        packingContext.esegui(colli, flottaGlobale);
 
-        // 3. Esecuzione Strategy (Riempie i veicoli IN MEMORIA)
-        packingContext.esegui(colliDaSpedire, flottaGlobale);
+        // 4. Salvataggio risultati (Refactoring: Metodo estratto per pulizia)
+        salvaRisultatiCarico(getAziendeAll());
+    }
 
-        // 4. Salvataggio su DB
-        int colliProcessati = 0;
-
-        for (Azienda az : this.elencoAziende) {
+    private void salvaRisultatiCarico(List<Azienda> aziende) {
+        int spediti = 0;
+        for (Azienda az : aziende) {
             for (IVeicolo v : az.getFlotta()) {
+                // Logica di business: Un veicolo parte solo se è PIENO (policy rigorosa)
+                // Oppure potremmo dire "se ha almeno 1 collo". Qui manteniamo la tua logica "pieno".
+                boolean veicoloPronto = (v.getCarico().size() == v.getCapienza());
 
-                // Controlliamo se il veicolo è pieno
-                boolean isPieno = (v.getCarico().size() == v.getCapienza());
-
-                // Iteriamo sui colli caricati (sia parziali che pieni)
                 for (ICollo c : v.getCarico()) {
-
+                    // Colleghiamo il Logger per tracciare questo evento
                     attachLogger(c);
 
-                    if (isPieno) {
-                        // CASO A: Veicolo Pieno -> SPEDIAMO
+                    if (veicoloPronto) {
                         if (!"IN_TRANSITO".equals(c.getStato())) {
                             c.setStato("IN_TRANSITO");
-
-                            // Salviamo associazione e stato
                             gestoreDatabase.associaColloVeicolo(c, v.getCodice());
-
-                            // Tracking
-                            String msg = "Spedito con " + az.getNome() + ". Il pacco ha lasciato la struttura del mittente.";
-                            gestoreDatabase.aggiornaTracking(c.getCodice(), msg);
-
-                            colliProcessati++;
+                            gestoreDatabase.aggiornaTracking(c.getCodice(), "Partito con " + az.getNome());
+                            spediti++;
                         }
                     } else {
-                        // CASO B: Veicolo Parziale -> SALVIAMO SOLO POSIZIONE
-                        // Il pacco resta "IN_PREPARAZIONE" ma ricordiamo che è su questo camion.
-                        // Così se chiudi l'app, al riavvio lo ritrovi lì.
-
-                        c.setStato("CARICATO"); // Ribadiamo lo stato
+                        // Veicolo non pieno: Il pacco è caricato ma il camion non parte.
+                        c.setStato("CARICATO");
                         gestoreDatabase.associaColloVeicolo(c, v.getCodice());
-
-                        // NON aggiungiamo tracking perché non è ancora partito
                     }
                 }
             }
         }
-
-        System.out.println("[Facade] Procedura terminata. Colli spediti: " + colliProcessati);
+        System.out.println("[Facade] Carico completato. Colli spediti: " + spediti);
     }
 
     // =========================================================================
-    // SEZIONE 2: METODI CORRIERE
+    // SEZIONE CORRIERE (Tracking)
     // =========================================================================
 
-    /**
-     * Recupera TUTTI i veicoli di TUTTE le aziende.
-     * FILTRO: Il corriere vede SOLO i veicoli che sono PIENI (quindi effettivamente partiti).
-     */
-    public List<IVeicolo> getFlotta() {
-        List<Azienda> tutteLeAziende = gestoreDatabase.getFlottaAll();
-        List<IVeicolo> veicoliInViaggio = new ArrayList<>();
+    public List<IVeicolo> getFlottaViaggiante() {
+        List<IVeicolo> inViaggio = new ArrayList<>();
+        // Ricarichiamo fresco dal DB per il corriere
+        List<Azienda> aziende = gestoreDatabase.getFlottaAll();
 
-        for (Azienda az : tutteLeAziende) {
+        for (Azienda az : aziende) {
             for (IVeicolo v : az.getFlotta()) {
-                // Il corriere deve vedere solo i veicoli pieni (quelli che il Manager ha "spedito")
-                // Quelli parziali sono ancora fermi in magazzino.
-                if (v.getCarico().size() == v.getCapienza() && !v.getCarico().isEmpty()) {
-                    veicoliInViaggio.add(v);
+                // Filtro: Il corriere vede solo i camion con merce a bordo
+                if (!v.getCarico().isEmpty()) {
+                    inViaggio.add(v);
                 }
             }
         }
-
-        return veicoliInViaggio;
+        return inViaggio;
     }
 
-    /**
-     * Registra la tappa (Rimane invariato, funziona su qualsiasi veicolo passato).
-     */
     public void registraTappaVeicolo(IVeicolo veicolo, String luogo) {
-        if (veicolo == null || veicolo.getCarico().isEmpty()) {
-            throw new IllegalArgumentException("Veicolo vuoto o non valido.");
-        }
+        if (veicolo == null || veicolo.getCarico().isEmpty()) return;
 
-        System.out.println("[Facade] Aggiornamento tappa per " + veicolo.getCodice() + " a " + luogo);
-
-        int aggiornati = 0;
+        System.out.println("[Facade] Tappa a " + luogo + " per veicolo " + veicolo.getCodice());
 
         for (ICollo c : veicolo.getCarico()) {
             attachLogger(c);
+
+            // Aggiorniamo solo i colli effettivamente in viaggio
             if ("IN_TRANSITO".equals(c.getStato())) {
-                String messaggio = "Arrivato a centro di smistamento: " + luogo;
+                String msg = "Arrivato a centro: " + luogo;
 
-                gestoreDatabase.aggiornaTracking(c.getCodice(), messaggio);
+                // Aggiorna DB (Storico)
+                gestoreDatabase.aggiornaTracking(c.getCodice(), msg);
 
-                try {
-                    c.aggiungiEventoStorico(messaggio);
-                } catch (Exception e) { /* Ignora */ }
-
-                aggiornati++;
+                // Aggiorna Oggetto in memoria (Observer notifica Logger)
+                c.aggiungiEventoStorico(msg);
             }
         }
-        veicolo.notifyObservers();
-        System.out.println("[Facade] Tappa registrata per " + aggiornati + " colli.");
     }
 
     // =========================================================================
-    // METODI DI SUPPORTO (CLIENTE/TRACKING)
+    // UTILS
     // =========================================================================
 
-    public ICollo cercaCollo(String codice) {
-        return gestoreDatabase.getColloProxy(codice);
+    public void setStrategy(PackingStrategy s) {
+        this.packingContext.setStrategy(s);
     }
 
-    public List<String> getStoricoCollo(String codice) {
-        ColloReale c = gestoreDatabase.getColloRealeCompleto(codice);
-        return (c != null) ? c.getStorico() : new ArrayList<>();
-    }
-
+    // Observer Helper
     private void attachLogger(ICollo c) {
         if (c instanceof Subject) {
-            Subject s = (Subject) c;
-
-            // 2. Logger su File (per persistenza e audit storico)
-            s.attach(new FileLogger(c));
+            // Nota: Poiché creiamo i proxy a nuovo, non c'è rischio duplicati in questa sessione.
+            ((Subject) c).attach(new FileLogger(c));
         }
     }
 }
