@@ -13,26 +13,19 @@ import java.util.Map;
 /**
  * Facade Pattern.
  * Fornisce un'interfaccia semplificata per la logica di business.
- * Gestisce la coerenza dei dati tra Manager, Corriere e Cliente tramite una cache interna.
  */
 public class LogisticaFacade {
 
     private final GestoreDatabase gestoreDatabase;
     private final PackingContext packingContext;
 
-    // --- CACHE COLLI (Fondamentale per l'Observer) ---
-    // Mantiene in memoria i colli già caricati per evitare di creare duplicati.
-    // Se Manager, Corriere e Cliente chiedono il collo "C001", riceveranno tutti
-    // lo stesso oggetto Java presente in questa mappa.
     private Map<String, ICollo> cacheColli;
-
-    // Cache per il Manager (flotta aziende)
     private List<Azienda> elencoAziendeCache;
 
     public LogisticaFacade() {
         this.gestoreDatabase = new GestoreDatabase();
         this.packingContext = new PackingContext(new NextFitStrategy());
-        this.cacheColli = new HashMap<>(); // Inizializziamo la cache vuota
+        this.cacheColli = new HashMap<>();
     }
 
     public void setStrategy(PackingStrategy strategy) {
@@ -41,7 +34,7 @@ public class LogisticaFacade {
 
     /**
      * Metodo Helper per la gestione della Cache.
-     * Se l'oggetto è già in memoria, restituisce quello vecchio (così l'Observer resta attivo).
+     * Se l'oggetto è già in memoria, restituisce quello vecchio.
      * Se è nuovo, lo salva in memoria e lo restituisce.
      */
     private ICollo gestisciCache(ICollo c) {
@@ -53,7 +46,7 @@ public class LogisticaFacade {
             return cacheColli.get(c.getCodice());
         }
 
-        // 2. Se è nuovo, lo salvo per le prossime volte
+        // 2. Se è nuovo, lo salvo
         cacheColli.put(c.getCodice(), c);
         return c;
     }
@@ -67,8 +60,6 @@ public class LogisticaFacade {
         if (this.elencoAziendeCache == null) {
             this.elencoAziendeCache = gestoreDatabase.getFlottaAll();
 
-            // IMPORTANTE: Popoliamo la cache dei colli con quelli trovati nei veicoli.
-            // Così se il Manager ha caricato un pacco, il sistema lo "conosce" già.
             for (Azienda a : elencoAziendeCache) {
                 for (IVeicolo v : a.getFlotta()) {
                     for (ICollo c : v.getCarico()) {
@@ -108,7 +99,7 @@ public class LogisticaFacade {
 
         if (flottaGlobale.isEmpty()) throw new IllegalStateException("Nessun veicolo disponibile.");
 
-        // Esecuzione Algoritmo (Lavora sugli oggetti in cache!)
+        // Esecuzione Algoritmo
         packingContext.esegui(colli, flottaGlobale);
 
         // Salvataggio su DB
@@ -147,7 +138,6 @@ public class LogisticaFacade {
     // =========================================================================
 
     public List<IVeicolo> getFlotta() {
-        // Usiamo la stessa lista del Manager per coerenza
         List<Azienda> aziende = getAziendeAll();
         List<IVeicolo> veicoliInViaggio = new ArrayList<>();
 
@@ -185,7 +175,7 @@ public class LogisticaFacade {
     }
 
     // =========================================================================
-    // SEZIONE 3: CLIENTE (Ricerca)
+    // SEZIONE 3: CLIENTE (Ricerca collo)
     // =========================================================================
 
     public ICollo cercaCollo(String codice) {
@@ -220,7 +210,7 @@ public class LogisticaFacade {
     private void attachLogger(ICollo c) {
         if (c instanceof Subject) {
             Subject s = (Subject) c;
-            // Attacchiamo il logger per salvare su file audit_log.txt
+            // Attacchiamo il logger per salvare su file observer_log.txt
             s.attach(new FileLogger(c));
         }
     }
