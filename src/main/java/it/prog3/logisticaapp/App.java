@@ -19,7 +19,7 @@ public class App extends Application {
     public void start(Stage stage) throws IOException {
         scene = new Scene(loadFXML("login"), 900, 600);
         stage.setScene(scene);
-        stage.setTitle("LogisticaApp - Gestionale Trasporti");
+        stage.setTitle("LogisticaApp - Gestionale");
         stage.show();
     }
 
