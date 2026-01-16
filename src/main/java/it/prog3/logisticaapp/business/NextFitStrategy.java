@@ -17,7 +17,7 @@ public class NextFitStrategy implements PackingStrategy {
 
     @Override
     public void eseguiPacking(List<ICollo> colli, List<IVeicolo> flotta) {
-        // Controllo robustezza
+        // Controllo
         if (colli == null || colli.isEmpty()) {
             System.out.println("[NextFit] Nessun collo da processare.");
             return;
@@ -29,10 +29,10 @@ public class NextFitStrategy implements PackingStrategy {
         System.out.println("[NextFit] Avvio algoritmo su " + colli.size() + " colli.");
 
         Iterator<IVeicolo> veicoloIterator = flotta.iterator();
-        IVeicolo veicoloCorrente = veicoloIterator.next(); // Sicuro perché flotta non è vuota
+        IVeicolo veicoloCorrente = veicoloIterator.next();
 
         for (ICollo collo : colli) {
-            // Filtriamo solo i colli pronti (Difesa in profondità)
+            // Filtriamo solo i colli pronti
             if (!"IN_PREPARAZIONE".equalsIgnoreCase(collo.getStato())) {
                 continue;
             }
