@@ -16,7 +16,6 @@ import java.util.List;
 
 public class CorriereController {
 
-    @FXML private Label lblBenvenuto;
     @FXML private ComboBox<IVeicolo> comboVeicoli;
     @FXML private ListView<String> listCarico;
     @FXML private TextField txtLuogo;
@@ -28,7 +27,7 @@ public class CorriereController {
     public void initialize() {
         this.facade = new LogisticaFacade();
 
-        lblBenvenuto.setText("Pannello Corriere");
+        //lblBenvenuto.setText("Pannello Corriere");
 
         // 1. Configura il ComboBox
         comboVeicoli.setConverter(new StringConverter<IVeicolo>() {
