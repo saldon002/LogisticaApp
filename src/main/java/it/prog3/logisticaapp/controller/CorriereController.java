@@ -4,13 +4,10 @@ import it.prog3.logisticaapp.App;
 import it.prog3.logisticaapp.business.LogisticaFacade;
 import it.prog3.logisticaapp.model.ICollo;
 import it.prog3.logisticaapp.model.IVeicolo;
-import it.prog3.logisticaapp.util.Observer;
-import it.prog3.logisticaapp.util.Subject;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.util.StringConverter;
 
@@ -23,7 +20,6 @@ public class CorriereController {
     @FXML private ComboBox<IVeicolo> comboVeicoli;
     @FXML private ListView<String> listCarico;
     @FXML private TextField txtLuogo;
-    @FXML private Button btnAggiorna;
     @FXML private Label lblStatus;
 
     private LogisticaFacade facade;
@@ -32,10 +28,9 @@ public class CorriereController {
     public void initialize() {
         this.facade = new LogisticaFacade();
 
-        // Messaggio generico, non serve più il nome azienda
-        lblBenvenuto.setText("Pannello Operatore Corriere");
+        lblBenvenuto.setText("Pannello Corriere");
 
-        // 1. Configura il ComboBox (NO LAMBDA)
+        // 1. Configura il ComboBox
         comboVeicoli.setConverter(new StringConverter<IVeicolo>() {
             @Override
             public String toString(IVeicolo v) {
@@ -50,7 +45,7 @@ public class CorriereController {
             }
         });
 
-        // 2. Listener cambio selezione (NO LAMBDA)
+        // 2. Listener cambio selezione
         comboVeicoli.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<IVeicolo>() {
             @Override
             public void changed(ObservableValue<? extends IVeicolo> observable, IVeicolo oldValue, IVeicolo newValue) {
@@ -90,7 +85,6 @@ public class CorriereController {
 
         if (v.getCarico().isEmpty()) {
             listCarico.getItems().add("Il veicolo è vuoto.");
-            // Potresti voler disabilitare il bottone aggiorna se è vuoto
             return;
         }
 
@@ -132,7 +126,6 @@ public class CorriereController {
             lblStatus.setText("Posizione aggiornata a: " + luogo);
             txtLuogo.clear();
 
-            // Refresh della lista per vedere eventuali cambi (opzionale)
             mostraCaricoVeicolo(veicoloSelezionato);
 
             Alert info = new Alert(Alert.AlertType.INFORMATION, "Tracking aggiornato con successo!");
