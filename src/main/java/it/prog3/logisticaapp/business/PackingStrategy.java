@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * Interfaccia del pattern Strategy per gli algoritmi di Bin Packing.
  * <p>
- * Definisce il metodo comune che tutti gli algoritmi (NextFit, BestFit, etc.)
- * Dovranno implementare per distribuire i colli nei veicoli.
+ * Definisce il metodo comune che tutti gli algoritmi dovranno implementare per distribuire i colli nei veicoli.
  * </p>
  */
 public interface PackingStrategy {
