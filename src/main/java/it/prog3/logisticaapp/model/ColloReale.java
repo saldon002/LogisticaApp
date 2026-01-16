@@ -13,7 +13,6 @@ import java.util.List;
  */
 public class ColloReale extends Subject implements ICollo {
 
-    // Incapsulamento rigoroso dei dati (SRP: Gestione stato)
     private String codice;
     private String stato;
     private String mittente;
@@ -22,7 +21,7 @@ public class ColloReale extends Subject implements ICollo {
     private List<String> storico;
 
     /**
-     * Costruttore vuoto necessario per la serializzazione o creazione rapida.
+     * Costruttore vuoto necessario per la serializzazione.
      * Inizializza le liste per evitare NullPointerException.
      */
     public ColloReale() {
@@ -31,19 +30,15 @@ public class ColloReale extends Subject implements ICollo {
     }
 
     /**
-     * Costruttore completo per inizializzazione rapida.
+     * Costruttore con parametri.
      */
     public ColloReale(String codice, double peso, String mittente, String destinatario) {
-        this(); // Chiama il costruttore vuoto per init liste
-        setCodice(codice); // Usiamo i setter per validare subito i dati
+        this();
+        setCodice(codice);
         setPeso(peso);
         this.mittente = mittente;
         this.destinatario = destinatario;
     }
-
-    // =========================================================================
-    // IMPLEMENTAZIONE ICollo (Logica di Business)
-    // =========================================================================
 
     @Override
     public String getCodice() { return codice; }
@@ -88,9 +83,6 @@ public class ColloReale extends Subject implements ICollo {
 
     @Override
     public void aggiungiEventoStorico(String evento) {
-        if (this.storico == null) {
-            this.storico = new ArrayList<>();
-        }
         this.storico.add(0, evento);
         notifyObservers();
     }
@@ -98,9 +90,10 @@ public class ColloReale extends Subject implements ICollo {
     @Override
     public List<String> getStorico() { return storico; }
 
-    // Metodo extra (non in interfaccia) per popolare lo storico, usato dal DB
+    // Metodo per popolare lo storico, usato dal DB
     public void setStorico(List<String> storico) {
-        this.storico = storico;
+        // Se null, credo lista vuota
+        this.storico = (storico != null) ? storico : new ArrayList<>();
     }
 
     @Override
