@@ -119,7 +119,7 @@ public class LogisticaFacade {
                         if (!"IN_TRANSITO".equals(c.getStato())) {
                             c.setStato("IN_TRANSITO");
                             gestoreDatabase.associaColloVeicolo(c, v.getCodice());
-                            gestoreDatabase.aggiornaTracking(c.getCodice(), "Partito con " + az.getNome());
+                            gestoreDatabase.aggiornaTracking(c.getCodice(), "Spedito con " + az.getNome());
                             spediti++;
                         }
                     } else {
@@ -163,7 +163,7 @@ public class LogisticaFacade {
             attachLogger(cached);
 
             if ("IN_TRANSITO".equals(cached.getStato())) {
-                String msg = "Arrivato a centro: " + luogo;
+                String msg = "Arrivato al centro smistamento: " + luogo;
 
                 // 1. Aggiorna DB
                 gestoreDatabase.aggiornaTracking(cached.getCodice(), msg);
