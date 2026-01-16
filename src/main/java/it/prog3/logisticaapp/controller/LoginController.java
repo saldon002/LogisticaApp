@@ -13,7 +13,7 @@ public class LoginController {
      */
     @FXML
     private void onOpenManager() throws IOException {
-        // Impostiamo il ruolo corretto usando il metodo esistente
+        // Impostiamo il ruolo corretto
         Sessione.getInstance().setRuoloCorrente(Sessione.Ruolo.MANAGER);
         System.out.println("[Login] Ruolo impostato: MANAGER");
 
