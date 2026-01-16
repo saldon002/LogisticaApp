@@ -14,12 +14,10 @@ import java.util.List;
 public class ClienteController implements Observer {
 
     @FXML private TextField txtCodice;
-    @FXML private Button btnCerca;
 
     @FXML private Label lblRisultato;
     @FXML private Label lblStato;
 
-    // Nuovo bottone per attivare il Proxy/Caricamento
     @FXML private Button btnVediStorico;
 
     @FXML private VBox boxStorico;
@@ -38,7 +36,12 @@ public class ClienteController implements Observer {
         this.facade = new LogisticaFacade();
         resetVista();
 
-        Platform.runLater(() -> txtCodice.requestFocus());
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                txtCodice.requestFocus();
+            }
+        });
     }
 
     private void resetVista() {
@@ -69,7 +72,7 @@ public class ClienteController implements Observer {
         }
 
         try {
-            // 1. Otteniamo il Proxy (leggero, solo codice e stato)
+            // 1. Otteniamo il ColloProxy (solo codice e stato)
             ICollo collo = facade.cercaCollo(codice);
 
             if (collo == null) {
@@ -117,12 +120,11 @@ public class ClienteController implements Observer {
             lblStato.setText("Stato: IN TRANSITO / SPEDITO");
             lblStato.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
 
-            // Qui sta la differenza: Mostriamo il bottone, MA NON CARICHIAMO I DATI
             if (!dettagliCaricati) {
                 btnVediStorico.setVisible(true);
                 boxStorico.setVisible(false);
             } else {
-                // Se l'utente aveva già cliccato, ricarichiamo la lista (caso aggiornamento live)
+                // Se l'utente aveva già cliccato, ricarichiamo la lista
                 caricaStorico();
             }
         }
@@ -130,7 +132,6 @@ public class ClienteController implements Observer {
 
     /**
      * Azione del bottone "Visualizza Aggiornamenti".
-     * Questo è il momento in cui il Proxy carica il RealSubject (o fa la query pesante).
      */
     @FXML
     public void onVediStorico() {
@@ -147,7 +148,8 @@ public class ClienteController implements Observer {
 
     private void caricaStorico() {
         try {
-            // Questa chiamata triggera il caricamento completo
+            // VIRTUAL PROXY
+            // L'utente ha richiesto i dettagli: interroghiamo il DB per lo storico.
             List<String> storico = facade.getStoricoCollo(colloCorrente.getCodice());
 
             listStorico.getItems().clear();
@@ -165,10 +167,12 @@ public class ClienteController implements Observer {
 
     @Override
     public void update() {
-        Platform.runLater(() -> {
-            System.out.println("[ClienteGUI] Update ricevuto.");
-            // Aggiorniamo lo stato (es. se passa da PREPARAZIONE a TRANSITO)
-            aggiornaStatoUI();
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("[ClienteGUI] Update ricevuto.");
+                aggiornaStatoUI();
+            }
         });
     }
 
