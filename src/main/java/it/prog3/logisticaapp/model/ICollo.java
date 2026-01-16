@@ -3,12 +3,10 @@ package it.prog3.logisticaapp.model;
 import java.util.List;
 
 /**
- * Interfaccia Completa (Lettura + Scrittura).
- * Estende IColloDati aggiungendo i metodi mutatori (Setter).
+ * Estende IColloDati aggiungendo i metodi setter.
  */
 public interface ICollo extends IColloDati {
 
-    // Codice: Di solito non si modifica la PK, ma lo lasciamo se serve per il caricamento
     void setCodice(String codice);
 
     /**
