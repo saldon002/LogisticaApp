@@ -8,7 +8,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Classe test Observer.
+ * Classe test observer.
+ * <p>
+ * Si occupa di salvare su file di testo le modifiche di stato
+ * notificate dai Subject osservati. Dimostra il funzionamento del pattern Observer.
+ * </p>
  */
 public class FileLogger implements Observer {
 
