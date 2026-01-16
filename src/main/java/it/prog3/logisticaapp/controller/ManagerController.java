@@ -32,14 +32,13 @@ public class ManagerController {
     // --- Componenti FXML: Tab 2 (Monitoraggio) ---
     @FXML private TreeView<String> treeFlottaAttiva;
 
-    // --- Business Layer ---
     private LogisticaFacade facade;
 
     @FXML
     public void initialize() {
         this.facade = new LogisticaFacade();
 
-        // 1. Configurazione Colonne Tabella (SENZA LAMBDA - Uso Classi Anonime)
+        // 1. Configurazione Colonne Tabella
 
         // Colonna Codice
         colCodice.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ICollo, String>, ObservableValue<String>>() {
@@ -101,61 +100,9 @@ public class ManagerController {
         }
     }
 
-    /*
-    private void costruisciAlberoDisponibili(List<Azienda> aziende) {
-        TreeItem<String> root = new TreeItem<>("Flotta Disponibile");
-        root.setExpanded(true);
-
-        for (Azienda az : aziende) {
-            TreeItem<String> nodoAzienda = new TreeItem<>(az.getNome());
-
-            for (IVeicolo v : az.getFlotta()) {
-                // Mostriamo solo info di base
-                String infoVeicolo = v.getTipo() + " [" + v.getCodice() + "] - Cap: " + v.getCapienza();
-                TreeItem<String> nodoVeicolo = new TreeItem<>(infoVeicolo);
-                nodoAzienda.getChildren().add(nodoVeicolo);
-            }
-            root.getChildren().add(nodoAzienda);
-        }
-        treeVeicoliDisponibili.setRoot(root);
-    }
-
-    private void costruisciAlberoMonitoraggio(List<Azienda> aziende) {
-        TreeItem<String> root = new TreeItem<>("Monitoraggio Spedizioni");
-        root.setExpanded(true);
-
-        for (Azienda az : aziende) {
-            TreeItem<String> nodoAzienda = new TreeItem<>(az.getNome());
-
-            for (IVeicolo v : az.getFlotta()) {
-                String statoVeicolo;
-                if (v.getCarico().isEmpty()) {
-                    statoVeicolo = "(Vuoto)";
-                } else {
-                    statoVeicolo = "(Carico: " + v.getCarico().size() + " colli)";
-                }
-
-                TreeItem<String> nodoVeicolo = new TreeItem<>(v.getTipo() + " " + v.getCodice() + " " + statoVeicolo);
-
-                // Se carico, aggiungi figli
-                if (!v.getCarico().isEmpty()) {
-                    nodoVeicolo.setExpanded(true);
-                    for (ICollo c : v.getCarico()) {
-                        String infoCollo = "PACCO " + c.getCodice() + " -> " + c.getDestinatario();
-                        nodoVeicolo.getChildren().add(new TreeItem<>(infoCollo));
-                    }
-                }
-                nodoAzienda.getChildren().add(nodoVeicolo);
-            }
-            root.getChildren().add(nodoAzienda);
-        }
-        treeFlottaAttiva.setRoot(root);
-    }
-    */
-
     /**
      * TAB 1: Mostra SOLO i veicoli che hanno ancora spazio disponibile.
-     * Se un veicolo è pieno (carico == capienza), non viene mostrato qui.
+     * Se un veicolo è pieno (carico == capienza), non viene mostrato.
      */
     private void costruisciAlberoDisponibili(List<Azienda> aziende) {
         TreeItem<String> root = new TreeItem<>("Flotta Disponibile (Capienza residua > 0)");
@@ -171,11 +118,11 @@ public class ManagerController {
                 int spazioTotale = v.getCapienza();
                 int spazioRimanente = spazioTotale - spazioOccupato;
 
-                // FILTRO: Mostriamo il veicolo solo se ha spazio (> 0)
+                // Mostriamo il veicolo solo se ha spazio (> 0)
                 if (spazioRimanente > 0) {
                     aziendaHaVeicoliDisponibili = true;
 
-                    // Mostriamo info utili: Tipo [Targa] - Libero: X su Y
+                    // Mostriamo info utili
                     String infoVeicolo = String.format("%s [%s] - Libero: %d/%d",
                             v.getTipo(), v.getCodice(), spazioRimanente, spazioTotale);
 
@@ -205,7 +152,7 @@ public class ManagerController {
             boolean aziendaAttiva = false;
 
             for (IVeicolo v : az.getFlotta()) {
-                // FILTRO: Mostriamo il veicolo solo se ha del carico (non è vuoto)
+                // Mostriamo il veicolo solo se pieno (è in viaggio)
                 if (v.getCarico().size() == v.getCapienza()) {
                     aziendaAttiva = true;
 
@@ -217,7 +164,6 @@ public class ManagerController {
 
                     // Aggiungiamo i figli mostrando SOLO IL CODICE
                     for (ICollo c : v.getCarico()) {
-                        // Richiesta utente: "solo i codici"
                         TreeItem<String> nodoCollo = new TreeItem<>(c.getCodice());
                         nodoVeicolo.getChildren().add(nodoCollo);
                     }
