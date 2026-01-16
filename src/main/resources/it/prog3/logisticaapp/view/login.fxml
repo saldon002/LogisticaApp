@@ -45,7 +45,7 @@
 
         <Separator prefWidth="300.0" />
 
-        <Label text="Progetto Prog3 - Logistica &amp; Trasporti" textFill="#bdc3c7">
+        <Label text="Progetto Prog3 - Logistica 1" textFill="#bdc3c7">
             <font>
                 <Font size="10.0" />
             </font>
