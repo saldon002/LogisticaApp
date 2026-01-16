@@ -27,8 +27,8 @@ public class ColloProxy extends Subject implements ICollo {
      * @param loader Chi si occupa di recuperare i dati
      */
     public ColloProxy(String codice, String stato, IDataLoader loader) {
-        setCodice(codice);
-        setStato(stato);
+        this.codice = codice;
+        this.stato = stato;
         this.dataLoader = loader;
         this.colloReale = null;
     }
