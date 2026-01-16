@@ -36,8 +36,8 @@ public class ColloReale extends Subject implements ICollo {
         this();
         setCodice(codice);
         setPeso(peso);
-        this.mittente = mittente;
-        this.destinatario = destinatario;
+        setMittente(mittente);
+        setDestinatario(destinatario);
     }
 
     @Override
