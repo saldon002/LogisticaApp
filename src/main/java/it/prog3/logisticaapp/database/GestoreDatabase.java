@@ -11,12 +11,11 @@ import java.util.Map;
 /**
  * Data Access Object (DAO) che implementa le operazioni CRUD.
  * Gestisce la persistenza di Veicoli, Colli e Storico.
- * Implementa IDataLoader per supportare il Lazy Loading del Proxy (DIP).
  */
 public class GestoreDatabase implements IDataLoader {
 
     // =================================================================================
-    // QUERY SQL (Costanti)
+    // QUERY SQL
     // =================================================================================
     private static final String SELECT_COLLI_PREPARAZIONE = "SELECT codice, stato FROM colli WHERE stato = 'IN_PREPARAZIONE'";
     private static final String SELECT_COLLO_BASE = "SELECT codice, stato FROM colli WHERE codice = ?";
@@ -34,18 +33,15 @@ public class GestoreDatabase implements IDataLoader {
     private static final String UPDATE_COLLO_CARICATO = "UPDATE colli SET stato = ?, veicolo_codice = ? WHERE codice = ?";
     private static final String SELECT_COLLI_PER_VEICOLO = "SELECT * FROM colli WHERE veicolo_codice = ?";
 
+    // COSTRUTTORE
     public GestoreDatabase() {}
 
     // =================================================================================
-    // SEZIONE 1: MANAGER & FLOTTA (Lettura Ottimizzata)
+    // SEZIONE 1: MANAGER & FLOTTA
     // =================================================================================
 
     /**
      * Metodo per il MANAGER: Recupera l'intera flotta dal DB raggruppata per Azienda.
-     * <p>
-     * OTTIMIZZAZIONE: Utilizza una HashMap per raggruppare le aziende in O(N)
-     * invece di scorrere la lista per ogni veicolo (O(N^2)).
-     * </p>
      * @return Lista di oggetti Azienda, ciascuno con la propria flotta popolata.
      */
     public List<Azienda> getFlottaAll() {
@@ -61,10 +57,9 @@ public class GestoreDatabase implements IDataLoader {
                 String codiceVeicolo = rs.getString("codice");
                 String tipo = rs.getString("tipo");
 
-                // 1. Recupera o crea l'azienda (in O(1))
+                // 1. Recupera o crea l'azienda
                 Azienda aziendaCorrente = mappaAziende.get(nomeAzienda);
                 if (aziendaCorrente == null) {
-                    // Nota: Qui c'è una dipendenza diretta da AziendaConcreta, accettabile in un DAO.
                     aziendaCorrente = new AziendaConcreta(nomeAzienda);
                     mappaAziende.put(nomeAzienda, aziendaCorrente);
                 }
@@ -81,7 +76,7 @@ public class GestoreDatabase implements IDataLoader {
                         aziendaCorrente.aggiungiVeicoloEsistente(v);
                     }
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Skip veicolo non supportato: " + codiceVeicolo);
+                    System.err.println("Veicolo non supportato: " + codiceVeicolo);
                 }
             }
         } catch (SQLException e) {
@@ -213,12 +208,11 @@ public class GestoreDatabase implements IDataLoader {
     }
 
     // =================================================================================
-    // SEZIONE 3: COLLI (Lettura Proxy & Real - Implementazione IDataLoader)
+    // SEZIONE 3: COLLI
     // =================================================================================
 
     /**
      * Recupera la lista di tutti i colli in stato 'IN_PREPARAZIONE'.
-     * Restituisce oggetti Proxy leggeri iniettando 'this' come loader.
      */
     public List<ICollo> getColliInPreparazione() {
         List<ICollo> lista = new ArrayList<>();
@@ -228,7 +222,7 @@ public class GestoreDatabase implements IDataLoader {
              ResultSet rs = st.executeQuery(SELECT_COLLI_PREPARAZIONE)) {
 
             while (rs.next()) {
-                // Dependency Injection: Passiamo 'this' al Proxy
+                // Creiamo il Proxy passando 'this' come IDataLoader
                 lista.add(new ColloProxy(
                         rs.getString("codice"),
                         rs.getString("stato"),
@@ -250,7 +244,7 @@ public class GestoreDatabase implements IDataLoader {
 
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    // Dependency Injection: Passiamo 'this' al Proxy
+                    // Creiamo il Proxy passando 'this' come IDataLoader
                     return new ColloProxy(
                             rs.getString("codice"),
                             rs.getString("stato"),
@@ -314,7 +308,7 @@ public class GestoreDatabase implements IDataLoader {
     }
 
     // =================================================================================
-    // SEZIONE 4: AGGIORNAMENTI (Update)
+    // SEZIONE 4: AGGIORNAMENTI
     // =================================================================================
 
     public void salvaCollo(ICollo c) {
@@ -340,17 +334,6 @@ public class GestoreDatabase implements IDataLoader {
 
         } catch (SQLException e) {
             throw new RuntimeException("Errore DB in aggiornaTracking per " + codiceCollo, e);
-        }
-    }
-
-    public void resetTabelle() {
-        try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("DELETE FROM veicoli");
-            // stmt.executeUpdate("DELETE FROM colli");
-            System.out.println("[DB] Tabelle veicoli resettata.");
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }
