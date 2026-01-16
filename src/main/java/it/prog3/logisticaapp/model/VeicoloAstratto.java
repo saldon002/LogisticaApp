@@ -9,9 +9,9 @@ import java.util.List;
  */
 public abstract class VeicoloAstratto extends Subject implements IVeicolo {
 
-    protected String codice;
-    protected int capienza;
-    protected List<ICollo> carico;
+    private String codice;
+    private int capienza;
+    private List<ICollo> carico;
 
     public VeicoloAstratto() {
         this.carico = new ArrayList<>();
