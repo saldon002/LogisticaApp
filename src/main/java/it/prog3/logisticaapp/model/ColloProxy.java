@@ -2,42 +2,39 @@ package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.IDataLoader;
+import it.prog3.logisticaapp.util.Subject;
 import java.util.List;
 
 /**
  * Proxy che gestisce l'accesso all'oggetto {@link ColloReale}.
  * <p>
- * Implementa l'interfaccia composita {@link ICollo} e combina due pattern:
+ * Implementa l'interfaccia composita {@link ICollo} e combina:
  * 1. <b>Virtual Proxy:</b> Lazy Loading dei dati pesanti (storico/dettagli).
  * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
-public class ColloProxy implements ICollo {
+public class ColloProxy extends Subject implements ICollo {
 
-    // Riferimento all'oggetto reale (Lazy)
+    // Riferimento all'oggetto reale
     private ColloReale colloReale;
 
-    // Dati "leggeri"
     private String codice;
     private String stato;
 
-    // Dipendenza per il caricamento (Dependency Injection)
     private IDataLoader dataLoader;
 
     /**
-     * Costruttore con Dependency Injection.
-     * @param loader Chi si occupa di recuperare i dati (es. GestoreDatabase)
+     * @param loader Chi si occupa di recuperare i dati
      */
     public ColloProxy(String codice, String stato, IDataLoader loader) {
-        this.codice = codice;
-        this.stato = stato;
+        setCodice(codice);
+        setStato(stato);
         this.dataLoader = loader;
         this.colloReale = null;
     }
 
     private ColloReale getColloReale() {
         if (this.colloReale == null) {
-            // Lazy Loading tramite l'interfaccia iniettata
             if (this.dataLoader == null) {
                 throw new RuntimeException("DataLoader non configurato nel Proxy!");
             }
@@ -47,7 +44,7 @@ public class ColloProxy implements ICollo {
     }
 
     // ==========================================
-    // PROTECTION PROXY & DELEGA
+    // PROTECTION PROXY E DELEGA
     // ==========================================
 
     private void checkPermessiScrittura() {
@@ -74,8 +71,9 @@ public class ColloProxy implements ICollo {
     @Override
     public void setStato(String stato) {
         checkPermessiScrittura();
+        this.stato = stato;
         getColloReale().setStato(stato);
-        this.stato = stato; // Allineiamo il dato locale
+        notifyObservers();
     }
 
     @Override
@@ -113,8 +111,9 @@ public class ColloProxy implements ICollo {
 
     @Override
     public void aggiungiEventoStorico(String evento) {
-        // Se volessi, potresti mettere checkPermessiScrittura() anche qui
+        checkPermessiScrittura();
         getColloReale().aggiungiEventoStorico(evento);
+        notifyObservers();
     }
 
     @Override
