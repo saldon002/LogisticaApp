@@ -2,7 +2,6 @@ package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.IDataLoader;
-import it.prog3.logisticaapp.util.Subject;
 import java.util.List;
 
 /**
@@ -13,7 +12,7 @@ import java.util.List;
  * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
-public class ColloProxy extends Subject implements ICollo {
+public class ColloProxy implements ICollo {
 
     // Riferimento all'oggetto reale
     private ColloReale colloReale;
@@ -73,7 +72,6 @@ public class ColloProxy extends Subject implements ICollo {
         checkPermessiScrittura();
         this.stato = stato;
         getColloReale().setStato(stato);
-        notifyObservers();
     }
 
     @Override
@@ -113,7 +111,6 @@ public class ColloProxy extends Subject implements ICollo {
     public void aggiungiEventoStorico(String evento) {
         checkPermessiScrittura();
         getColloReale().aggiungiEventoStorico(evento);
-        notifyObservers();
     }
 
     @Override
