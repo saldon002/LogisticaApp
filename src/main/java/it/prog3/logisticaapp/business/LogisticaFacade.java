@@ -48,6 +48,7 @@ public class LogisticaFacade {
 
         // 2. Se è nuovo, lo salvo
         cacheColli.put(c.getCodice(), c);
+        new FileLogger(c);
         return c;
     }
 
@@ -113,19 +114,19 @@ public class LogisticaFacade {
                 boolean isPieno = (v.getCarico().size() == v.getCapienza());
 
                 for (ICollo c : v.getCarico()) {
-                    attachLogger(c);
+                    ICollo cached = gestisciCache(c);
 
                     if (isPieno) {
-                        if (!"IN_TRANSITO".equals(c.getStato())) {
-                            c.setStato("IN_TRANSITO");
-                            gestoreDatabase.associaColloVeicolo(c, v.getCodice());
-                            gestoreDatabase.aggiornaTracking(c.getCodice(), "Spedito con " + az.getNome());
+                        if (!"IN_TRANSITO".equals(cached.getStato())) {
+                            cached.setStato("IN_TRANSITO");
+                            gestoreDatabase.associaColloVeicolo(cached, v.getCodice());
+                            gestoreDatabase.aggiornaTracking(cached.getCodice(), "Spedito con " + az.getNome());
                             spediti++;
                         }
                     } else {
                         // Se non parte, resta CARICATO
-                        c.setStato("CARICATO");
-                        gestoreDatabase.associaColloVeicolo(c, v.getCodice());
+                        cached.setStato("CARICATO");
+                        gestoreDatabase.associaColloVeicolo(cached, v.getCodice());
                     }
                 }
             }
@@ -160,7 +161,6 @@ public class LogisticaFacade {
         for (ICollo c : veicolo.getCarico()) {
             // Recuperiamo l'istanza corretta dalla cache
             ICollo cached = gestisciCache(c);
-            attachLogger(cached);
 
             if ("IN_TRANSITO".equals(cached.getStato())) {
                 String msg = "Arrivato al centro smistamento: " + luogo;
@@ -201,17 +201,5 @@ public class LogisticaFacade {
         // Altrimenti query DB
         ColloReale c = gestoreDatabase.getColloRealeCompleto(codice);
         return (c != null) ? c.getStorico() : new ArrayList<>();
-    }
-
-    // =========================================================================
-    // UTILITY
-    // =========================================================================
-
-    private void attachLogger(ICollo c) {
-        if (c instanceof Subject) {
-            Subject s = (Subject) c;
-            // Attacchiamo il logger per salvare su file observer_log.txt
-            s.attach(new FileLogger(c));
-        }
     }
 }
