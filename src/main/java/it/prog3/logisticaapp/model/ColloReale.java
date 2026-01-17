@@ -58,6 +58,7 @@ public class ColloReale extends Subject implements ICollo {
     public void setStato(String stato) {
         this.stato = stato;
         notifyObservers();
+        System.out.println("DEBUG: Cambio stato in corso...");
     }
 
     @Override
