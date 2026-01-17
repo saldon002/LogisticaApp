@@ -9,24 +9,22 @@ import java.util.List;
  *     Gestisce la lista degli osservatori e la notifica.
  * </p>
  */
-public abstract class Subject implements IObservable {
+public abstract class Subject {
 
     // Lista degli osservatori iscritti
     private final List<Observer> observers = new ArrayList<>();
 
-    @Override
     public void attach(Observer observer) {
         if (observer != null && !observers.contains(observer)) {
             observers.add(observer);
+            System.out.println("DEBUG: Attach eseguito");
         }
     }
 
-    @Override
     public void detach(Observer observer) {
         observers.remove(observer);
     }
 
-    @Override
     public void notifyObservers() {
         // Scorre la lista e notifica tutti
         for (Observer observer : observers) {
