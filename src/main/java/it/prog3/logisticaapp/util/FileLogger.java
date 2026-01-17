@@ -22,6 +22,10 @@ public class FileLogger implements Observer {
     public FileLogger(ICollo collo) {
         this.colloOsservato = collo;
 
+        if (collo instanceof Subject) {
+            ((Subject) collo).attach(this);
+        }
+
         // --- DEBUG: Stampa il percorso del file ---
         java.io.File f = new java.io.File(FILE_NAME);
         System.out.println("[DEBUG LOGGER] Sto scrivendo il file qui: " + f.getAbsolutePath());
@@ -29,6 +33,8 @@ public class FileLogger implements Observer {
 
     @Override
     public void update() {
+        System.out.println("DEBUG: Scrittura file...");
+
         // 1. Prepara il messaggio
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String messaggio = String.format("[%s] UPDATE: Il collo %s è passato allo stato: %s",
