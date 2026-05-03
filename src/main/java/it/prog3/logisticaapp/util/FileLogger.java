@@ -7,30 +7,42 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Classe test observer.
+ * <p>
+ * Si occupa di salvare su file di testo le modifiche di stato
+ * notificate dai Subject osservati. Dimostra il funzionamento del pattern Observer.
+ * </p>
+ */
 public class FileLogger implements Observer {
 
-    private static final String FILE_NAME = "audit_log.txt"; // Il file verrà creato nella cartella del progetto
+    private static final String FILE_NAME = "observer_log.txt";
     private ICollo colloOsservato;
 
     public FileLogger(ICollo collo) {
         this.colloOsservato = collo;
 
-        // --- DEBUG: Stampa il percorso assoluto ---
+        if (collo instanceof Subject) {
+            ((Subject) collo).attach(this);
+        }
+
+        // --- DEBUG: Stampa il percorso del file ---
         java.io.File f = new java.io.File(FILE_NAME);
         System.out.println("[DEBUG LOGGER] Sto scrivendo il file qui: " + f.getAbsolutePath());
     }
 
     @Override
     public void update() {
+        System.out.println("DEBUG: Scrittura file...");
+
         // 1. Prepara il messaggio
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String messaggio = String.format("[%s] UPDATE: Il collo %s è passato allo stato: %s",
                 time, colloOsservato.getCodice(), colloOsservato.getStato());
 
-        // 2. Scrivi su file (Try-with-resources chiude automaticamente il file)
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
             writer.write(messaggio);
-            writer.newLine(); // Vai a capo
+            writer.newLine();
         } catch (IOException e) {
             System.err.println("Errore durante la scrittura del log su file: " + e.getMessage());
         }

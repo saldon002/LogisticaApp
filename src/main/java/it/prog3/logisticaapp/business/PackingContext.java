@@ -7,9 +7,8 @@ import java.util.List;
 /**
  * Classe Context del pattern Strategy.
  * <p>
- * Mantiene un riferimento a una strategia concreta (IPackingStrategy)
- * e delega ad essa l'esecuzione dell'algoritmo.
- * Questo permette di cambiare algoritmo a runtime (es. tramite setStrategy).
+ * Mantiene un riferimento a una strategia concreta (PackingStrategy) e delega ad essa l'esecuzione dell'algoritmo.
+ * Questo permette di cambiare algoritmo a runtime.
  * </p>
  */
 public class PackingContext {
@@ -21,10 +20,7 @@ public class PackingContext {
      * @param strategy La strategia di default (es. NextFit).
      */
     public PackingContext(PackingStrategy strategy) {
-        if (strategy == null) {
-            throw new IllegalArgumentException("La strategia non può essere null");
-        }
-        this.strategy = strategy;
+       setStrategy(strategy);
     }
 
     /**

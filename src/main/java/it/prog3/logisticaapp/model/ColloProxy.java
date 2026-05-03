@@ -1,138 +1,117 @@
 package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
-import it.prog3.logisticaapp.database.GestoreDatabase;
+import it.prog3.logisticaapp.database.IDataLoader;
 import java.util.List;
 
 /**
  * Proxy che gestisce l'accesso all'oggetto {@link ColloReale}.
  * <p>
- * Implementa l'interfaccia composita {@link ICollo} e combina due pattern:
+ * Implementa l'interfaccia composita {@link ICollo} e combina:
  * 1. <b>Virtual Proxy:</b> Lazy Loading dei dati pesanti (storico/dettagli).
  * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
 public class ColloProxy implements ICollo {
 
-
-
-    // Riferimento all'oggetto reale (Lazy).
+    // Riferimento all'oggetto reale
     private ColloReale colloReale;
 
-    // Dati "leggeri" mantenuti nel Proxy per evitare query inutili.
     private String codice;
     private String stato;
 
+    private IDataLoader dataLoader;
+
     /**
-     * Costruttore leggero.
-     * Non effettua connessioni al DB.
+     * @param loader Chi si occupa di recuperare i dati
      */
-    public ColloProxy(String codice, String stato) {
+    public ColloProxy(String codice, String stato, IDataLoader loader) {
         this.codice = codice;
         this.stato = stato;
+        this.dataLoader = loader;
         this.colloReale = null;
     }
 
-    /**
-     * Lazy Loading: Carica l'oggetto reale solo quando serve.
-     */
     private ColloReale getColloReale() {
         if (this.colloReale == null) {
-            System.out.println("[Proxy] Lazy Loading: Recupero dati completi per " + codice + "...");
-
-            // Usiamo il GestoreDatabase per creare l'oggetto
-            GestoreDatabase db = new GestoreDatabase();
-            this.colloReale = db.getColloRealeCompleto(this.codice);
-
-            // Controllo robustezza
-            if (this.colloReale == null) {
-                // Se non troviamo i dettagli, potrebbe essere un errore grave di consistenza DB
-                throw new RuntimeException("Errore Data Integrity: Collo " + codice + " esiste nell'indice ma non nei dettagli.");
+            if (this.dataLoader == null) {
+                throw new RuntimeException("DataLoader non configurato nel Proxy!");
             }
+            this.colloReale = this.dataLoader.getColloRealeCompleto(this.codice);
         }
         return this.colloReale;
     }
 
-    // =========================================================================
-    // IMPLEMENTAZIONE ICollo (Metodi Proxy)
-    // =========================================================================
+    // ==========================================
+    // PROTECTION PROXY E DELEGA
+    // ==========================================
 
-    @Override
-    public String getCodice() {
-        return this.codice;
+    private void checkPermessiScrittura() {
+        if (Sessione.getInstance().getRuoloCorrente() == Sessione.Ruolo.CLIENTE) {
+            throw new SecurityException("Accesso Negato: I clienti non possono modificare i dati.");
+        }
     }
 
     @Override
+    public String getCodice() { return this.codice; }
+
+    @Override
     public void setCodice(String codice) {
-        this.codice = codice; // Aggiorna locale
-        if (colloReale != null) {
-            colloReale.setCodice(codice); // Aggiorna reale se esiste
-        }
+        this.codice = codice;
+        if (colloReale != null) colloReale.setCodice(codice);
     }
 
     @Override
     public String getStato() {
-        // Se il reale è già in memoria, usa quello (potrebbe essere più fresco)
         if (colloReale != null) return colloReale.getStato();
         return stato;
     }
 
-    /**
-     * PROTECTION PROXY: Controlla i permessi prima di scrivere.
-     */
-    // In ColloProxy.java
     @Override
     public void setStato(String stato) {
-        // PROTEZIONE: Solo Manager e Corriere possono scrivere
-        if (Sessione.getInstance().getRuoloCorrente() == Sessione.Ruolo.CLIENTE) {
-            throw new SecurityException("Permesso negato: Il cliente non può modificare lo stato.");
-        }
-        // Delega al reale
+        checkPermessiScrittura();
+        this.stato = stato;
         getColloReale().setStato(stato);
     }
 
-// Fai lo stesso per setMittente, setDestinatario, setPeso se vuoi blindare tutto.
-
-    // --- Metodi che forzano il caricamento (Virtual Proxy / Delegation) ---
-
     @Override
-    public void aggiungiEventoStorico(String evento) {
-        // Controllo sicurezza: Solo il corriere o il sistema dovrebbero scrivere nello storico
-        if (Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.CORRIERE &&
-                Sessione.getInstance().getRuoloCorrente() != Sessione.Ruolo.MANAGER) {
-            // Nota: A volte il manager può forzare note, altrimenti lascia solo CORRIERE
-        }
-
-        // Delega al reale (caricandolo se serve)
-        getColloReale().aggiungiEventoStorico(evento);
-    }
-
-    // IL METODO CHE MANCAVA
-    @Override
-    public void setStorico(List<String> storico) {
-        // Delega completamente all'oggetto reale
-        getColloReale().setStorico(storico);
+    public void setMittente(String mittente) {
+        checkPermessiScrittura();
+        getColloReale().setMittente(mittente);
     }
 
     @Override
-    public List<String> getStorico() {
-        return getColloReale().getStorico();
+    public void setDestinatario(String destinatario) {
+        checkPermessiScrittura();
+        getColloReale().setDestinatario(destinatario);
     }
 
     @Override
-    public String getMittente() { return getColloReale().getMittente(); }
-    @Override
-    public void setMittente(String m) { getColloReale().setMittente(m); }
-
-    @Override
-    public String getDestinatario() { return getColloReale().getDestinatario(); }
-    @Override
-    public void setDestinatario(String d) { getColloReale().setDestinatario(d); }
+    public void setPeso(double peso) {
+        checkPermessiScrittura();
+        getColloReale().setPeso(peso);
+    }
 
     @Override
     public double getPeso() { return getColloReale().getPeso(); }
+
     @Override
-    public void setPeso(double p) { getColloReale().setPeso(p); }
+    public String getMittente() { return getColloReale().getMittente(); }
+
+    @Override
+    public String getDestinatario() { return getColloReale().getDestinatario(); }
+
+    @Override
+    public List<String> getStorico() { return getColloReale().getStorico(); }
+
+    @Override
+    public void setStorico(List<String> storico) { getColloReale().setStorico(storico); }
+
+    @Override
+    public void aggiungiEventoStorico(String evento) {
+        checkPermessiScrittura();
+        getColloReale().aggiungiEventoStorico(evento);
+    }
 
     @Override
     public String toString() {

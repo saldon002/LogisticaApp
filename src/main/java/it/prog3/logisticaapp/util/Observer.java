@@ -8,8 +8,7 @@ package it.prog3.logisticaapp.util;
  * </p>
  */
 public interface Observer {
-    /**
-     * Metodo chiamato dal Subject quando il suo stato cambia.
-     */
+
+    //Metodo chiamato dal Subject quando il suo stato cambia.
     void update();
 }

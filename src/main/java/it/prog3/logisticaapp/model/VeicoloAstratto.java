@@ -1,17 +1,16 @@
 package it.prog3.logisticaapp.model;
 
-import it.prog3.logisticaapp.util.Subject;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Classe astratta che implementa la logica comune a tutti i veicoli.
  */
-public abstract class VeicoloAstratto extends Subject implements IVeicolo {
+public abstract class VeicoloAstratto implements IVeicolo {
 
-    protected String codice;
-    protected int capienza;
-    protected List<ICollo> carico;
+    private String codice;
+    private int capienza;
+    private List<ICollo> carico;
 
     public VeicoloAstratto() {
         this.carico = new ArrayList<>();
@@ -31,7 +30,6 @@ public abstract class VeicoloAstratto extends Subject implements IVeicolo {
         // Controllo capienza
         if (carico.size() < capienza) {
             carico.add(collo);
-            notifyObservers();
             return true;
         }
         return false;

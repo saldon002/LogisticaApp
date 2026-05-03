@@ -20,13 +20,12 @@ public class Sessione {
 
     // Costruttore privato per impedire istanziazione esterna
     private Sessione() {
-        // Default: Il cliente è l'attore con permessi minimi
-        this.ruoloCorrente = Ruolo.MANAGER;
+        this.ruoloCorrente = Ruolo.CLIENTE;
         System.out.println("[Sessione] Inizializzata con ruolo default: CLIENTE");
     }
 
     /**
-     * Restituisce l'istanza unica della Sessione (Lazy Initialization).
+     * Restituisce l'istanza unica della Sessione.
      * @return L'oggetto Sessione.
      */
     public static Sessione getInstance() {

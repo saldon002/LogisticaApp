@@ -18,18 +18,13 @@
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #2c3e50; -fx-padding: 15;">
                     <children>
-                        <Label text="LogisticaApp - Modulo Corriere" textFill="WHITE">
+                        <Label text="LogisticaApp - Pannello Corriere" textFill="WHITE">
                             <font>
                                 <Font name="System Bold" size="18.0" />
                             </font>
                         </Label>
                         <HBox alignment="CENTER_RIGHT" spacing="10.0" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label fx:id="lblBenvenuto" text="Pannello Operatore" textFill="#bdc3c7">
-                                    <font>
-                                        <Font size="14.0" />
-                                    </font>
-                                </Label>
                                 <Button mnemonicParsing="false" onAction="#onLogout" style="-fx-background-color: #e74c3c; -fx-text-fill: white;" text="Esci">
                                     <font>
                                         <Font name="System Bold" size="12.0" />
@@ -45,17 +40,12 @@
                         <Insets left="15.0" right="15.0" top="10.0" />
                     </padding>
                     <children>
-                        <Label text="IDENTIFICAZIONE MEZZO" textFill="#7f8c8d">
-                            <font>
-                                <Font name="System Bold" size="10.0" />
-                            </font>
-                        </Label>
                         <Label text="Seleziona il veicolo da tracciare:" textFill="#2c3e50">
                             <font>
                                 <Font size="14.0" />
                             </font>
                         </Label>
-                        <ComboBox fx:id="comboVeicoli" maxWidth="1.7976931348623157E308" prefHeight="35.0" promptText="-- Seleziona dalla lista globale --" style="-fx-font-size: 14;" />
+                        <ComboBox fx:id="comboVeicoli" maxWidth="1.7976931348623157E308" prefHeight="35.0" promptText="-- Seleziona --" style="-fx-font-size: 14;" />
                     </children>
                 </VBox>
 
@@ -70,7 +60,7 @@
                         <Insets left="15.0" right="15.0" />
                     </padding>
                     <children>
-                        <Label text="MANIFESTO DI CARICO (Pacchi a bordo)" textFill="#7f8c8d">
+                        <Label text="COLLI A BORDO" textFill="#7f8c8d">
                             <font>
                                 <Font name="System Bold" size="10.0" />
                             </font>

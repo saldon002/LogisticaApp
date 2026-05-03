@@ -12,15 +12,15 @@ import java.util.List;
 public abstract class Azienda {
 
     private String nome;
-    protected List<IVeicolo> flotta;
+    private List<IVeicolo> flotta;
 
     public Azienda() {
-        this.flotta = new ArrayList<>();
+        setFlotta(new ArrayList<>());
     }
 
     public Azienda(String nome) {
         this();
-        this.nome = nome;
+        setNome(nome);
     }
 
     public String getNome() { return nome; }
@@ -37,7 +37,7 @@ public abstract class Azienda {
     }
 
     public void setFlotta(List<IVeicolo> flotta) {
-        this.flotta = flotta;
+        this.flotta = (flotta != null) ? flotta : new ArrayList<>();
     }
 
 
@@ -54,10 +54,10 @@ public abstract class Azienda {
      * @throws IllegalArgumentException se il tipo di veicolo non è supportato.
      */
     public void aggiungiVeicolo(String tipo, String codice) {
-        // 1. Delegiamo la creazione alla sottoclasse (Factory Method)
+        // 1. Deleghiamo la creazione alla sottoclasse (Factory Method)
         IVeicolo v = createVeicolo(tipo, codice);
 
-        // 2. Controllo robustezza
+        // 2. Controllo
         if (v == null) {
             throw new IllegalArgumentException("Tipo veicolo non supportato: " + tipo);
         }

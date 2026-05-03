@@ -17,10 +17,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // MODIFICA QUI: Carichiamo "login" come prima schermata
         scene = new Scene(loadFXML("login"), 900, 600);
         stage.setScene(scene);
-        stage.setTitle("LogisticaApp - Gestionale Trasporti");
+        stage.setTitle("LogisticaApp - Gestionale");
         stage.show();
     }
 
