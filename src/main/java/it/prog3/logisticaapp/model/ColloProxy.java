@@ -2,6 +2,8 @@ package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.IDataLoader;
+import it.prog3.logisticaapp.util.Observer;
+import it.prog3.logisticaapp.util.Subject;
 import java.util.List;
 
 /**
@@ -12,7 +14,7 @@ import java.util.List;
  * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
-public class ColloProxy implements ICollo {
+public class ColloProxy extends Subject implements ICollo {
 
     // Riferimento all'oggetto reale
     private ColloReale colloReale;
@@ -111,6 +113,18 @@ public class ColloProxy implements ICollo {
     public void aggiungiEventoStorico(String evento) {
         checkPermessiScrittura();
         getColloReale().aggiungiEventoStorico(evento);
+    }
+
+    @Override
+    public void attach(Observer observer) {
+        getColloReale().attach(observer);
+    }
+
+    @Override
+    public void detach(Observer observer) {
+        if (this.colloReale != null) {
+            getColloReale().detach(observer);
+        }
     }
 
     @Override
