@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Rappresenta l'oggetto Reale nel pattern Proxy.
- * <p>
+ * <p>n
  * Implementazione concreta di un collo che mantiene tutti i dati in memoria.
  * Estende {@link Subject} per ereditare la logica di notifica (Observer Pattern).
  * </p>
@@ -41,28 +41,30 @@ public class ColloReale extends Subject implements ICollo {
     }
 
     @Override
-    public String getCodice() { return codice; }
+    public String getCodice() {
+        return codice;
+    }
 
     @Override
     public void setCodice(String codice) {
-        if (codice == null || codice.trim().isEmpty()) {
-            throw new IllegalArgumentException("Il codice del collo non può essere vuoto.");
-        }
         this.codice = codice;
     }
 
     @Override
-    public String getStato() { return stato; }
+    public String getStato() {
+        return stato;
+    }
 
     @Override
     public void setStato(String stato) {
         this.stato = stato;
         notifyObservers();
-        System.out.println("DEBUG: Cambio stato in corso...");
     }
 
     @Override
-    public double getPeso() { return peso; }
+    public double getPeso() {
+        return peso;
+    }
 
     @Override
     public void setPeso(double peso) {
@@ -93,12 +95,14 @@ public class ColloReale extends Subject implements ICollo {
 
     // Metodo per popolare lo storico, usato dal DB
     public void setStorico(List<String> storico) {
-        // Se null, credo lista vuota
+        // Se null, creo lista vuota
         this.storico = (storico != null) ? storico : new ArrayList<>();
     }
 
+    /*
     @Override
     public String toString() {
         return codice + " (" + stato + ")";
     }
+     */
 }
