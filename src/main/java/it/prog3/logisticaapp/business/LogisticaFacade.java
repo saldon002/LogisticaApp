@@ -3,7 +3,6 @@ package it.prog3.logisticaapp.business;
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.model.*;
 import it.prog3.logisticaapp.util.FileLogger;
-import it.prog3.logisticaapp.util.Subject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
