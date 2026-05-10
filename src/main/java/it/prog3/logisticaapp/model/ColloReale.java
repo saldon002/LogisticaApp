@@ -99,10 +99,8 @@ public class ColloReale extends Subject implements ICollo {
         this.storico = (storico != null) ? storico : new ArrayList<>();
     }
 
-    /*
     @Override
     public String toString() {
         return codice + " (" + stato + ")";
     }
-     */
 }
