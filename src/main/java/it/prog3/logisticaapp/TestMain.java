@@ -12,7 +12,6 @@ public class TestMain {
         DbSetup.main(args);
 
         GestoreDatabase dao = new GestoreDatabase();
-        //dao.resetTabelle();
 
         // 2. Creazione AZIENDE e VEICOLI
         Azienda dhl = new AziendaConcreta("DHL");
