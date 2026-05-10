@@ -57,11 +57,8 @@ public abstract class VeicoloAstratto implements IVeicolo {
         this.capienza = capienza;
     }
 
-    /*
     @Override
     public String toString() {
         return getTipo() + " [targa=" + codice + ", carico=" + carico.size() + "/" + capienza + "]";
     }
-
-     */
 }
