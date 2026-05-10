@@ -16,12 +16,9 @@ import java.util.List;
  */
 public class ColloProxy extends Subject implements ICollo {
 
-    // Riferimento all'oggetto reale
-    private ColloReale colloReale;
-
+    private ColloReale colloReale; // Riferimento all'oggetto reale
     private String codice;
     private String stato;
-
     private IDataLoader dataLoader;
 
     /**
@@ -65,8 +62,11 @@ public class ColloProxy extends Subject implements ICollo {
 
     @Override
     public String getStato() {
-        if (colloReale != null) return colloReale.getStato();
-        return stato;
+        if (colloReale != null) {
+            return colloReale.getStato();
+        } else {
+            return stato;
+        }
     }
 
     @Override
@@ -107,7 +107,10 @@ public class ColloProxy extends Subject implements ICollo {
     public List<String> getStorico() { return getColloReale().getStorico(); }
 
     @Override
-    public void setStorico(List<String> storico) { getColloReale().setStorico(storico); }
+    public void setStorico(List<String> storico) {
+        checkPermessiScrittura();
+        getColloReale().setStorico(storico);
+    }
 
     @Override
     public void aggiungiEventoStorico(String evento) {
@@ -127,8 +130,10 @@ public class ColloProxy extends Subject implements ICollo {
         }
     }
 
+    /*
     @Override
     public String toString() {
         return codice + " (" + stato + ") [Proxy]";
     }
+     */
 }
