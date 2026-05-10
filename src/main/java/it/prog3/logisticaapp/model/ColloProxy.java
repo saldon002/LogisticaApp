@@ -130,10 +130,8 @@ public class ColloProxy extends Subject implements ICollo {
         }
     }
 
-    /*
     @Override
     public String toString() {
         return codice + " (" + stato + ") [Proxy]";
     }
-     */
 }
