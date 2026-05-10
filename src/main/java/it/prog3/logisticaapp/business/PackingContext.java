@@ -32,7 +32,6 @@ public class PackingContext {
             throw new IllegalArgumentException("La strategia non può essere null");
         }
         this.strategy = strategy;
-        System.out.println("[Strategy] Algoritmo cambiato in: " + strategy.getClass().getSimpleName());
     }
 
     /**
