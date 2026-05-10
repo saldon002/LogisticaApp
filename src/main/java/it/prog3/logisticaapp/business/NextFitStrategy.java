@@ -23,7 +23,7 @@ public class NextFitStrategy implements PackingStrategy {
             return;
         }
         if (flotta == null || flotta.isEmpty()) {
-            throw new IllegalStateException("Impossibile avviare il carico: Flotta vuota.");
+            throw new IllegalStateException("[NextFit] Impossibile avviare il carico: Flotta vuota.");
         }
 
         System.out.println("[NextFit] Avvio algoritmo su " + colli.size() + " colli.");
@@ -41,28 +41,23 @@ public class NextFitStrategy implements PackingStrategy {
             boolean inserito = veicoloCorrente.caricaCollo(collo);
 
             if (inserito) {
-                markAsCaricato(collo, veicoloCorrente);
+                collo.setStato("CARICATO");
             } else {
                 // NEXT FIT: Se non entra, chiudi e passa al prossimo
                 if (veicoloIterator.hasNext()) {
                     veicoloCorrente = veicoloIterator.next();
                     // Riprova nel nuovo veicolo (vuoto)
                     if (veicoloCorrente.caricaCollo(collo)) {
-                        markAsCaricato(collo, veicoloCorrente);
+                        collo.setStato("CARICATO");
                     } else {
                         // Caso critico: Il collo è più grande della capienza totale del veicolo vuoto
-                        System.err.println("ERRORE: Collo " + collo.getCodice() + " troppo grande per " + veicoloCorrente.getTipo());
+                        System.err.println("[NextFit] ERRORE: Collo " + collo.getCodice() + " troppo grande per " + veicoloCorrente.getTipo());
                     }
                 } else {
-                    System.err.println("FLOTTA ESAURITA: Impossibile caricare collo " + collo.getCodice());
-                    // Qui l'algoritmo si ferma o lascia a terra i restanti.
+                    System.err.println("[NextFit] FLOTTA ESAURITA: Impossibile caricare collo " + collo.getCodice());
+                    // Qui l'algoritmo si ferma e lascia a terra i restanti.
                 }
             }
         }
-    }
-
-    private void markAsCaricato(ICollo c, IVeicolo v) {
-        c.setStato("CARICATO");
-        System.out.println(" -> [OK] Collo " + c.getCodice() + " >> Veicolo " + v.getCodice());
     }
 }

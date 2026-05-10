@@ -3,7 +3,6 @@ package it.prog3.logisticaapp.business;
 import it.prog3.logisticaapp.database.GestoreDatabase;
 import it.prog3.logisticaapp.model.*;
 import it.prog3.logisticaapp.util.FileLogger;
-import it.prog3.logisticaapp.util.Subject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -145,7 +144,7 @@ public class LogisticaFacade {
         for (Azienda az : aziende) {
             for (IVeicolo v : az.getFlotta()) {
                 // Il corriere vede solo i veicoli pieni/partiti
-                if (!v.getCarico().isEmpty()) {
+                if (v.getCarico().size() == v.getCapienza()) {
                     veicoliInViaggio.add(v);
                 }
             }
@@ -156,7 +155,7 @@ public class LogisticaFacade {
     public void registraTappaVeicolo(IVeicolo veicolo, String luogo) {
         if (veicolo == null || veicolo.getCarico().isEmpty()) return;
 
-        System.out.println("[Facade] Tappa a " + luogo);
+        System.out.println("[Facade] Tappa a " + luogo + " registrata con successo.");
 
         for (ICollo c : veicolo.getCarico()) {
             // Recuperiamo l'istanza corretta dalla cache

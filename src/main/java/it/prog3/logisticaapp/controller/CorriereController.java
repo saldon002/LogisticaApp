@@ -27,8 +27,6 @@ public class CorriereController {
     public void initialize() {
         this.facade = new LogisticaFacade();
 
-        //lblBenvenuto.setText("Pannello Corriere");
-
         // 1. Configura il ComboBox
         comboVeicoli.setConverter(new StringConverter<IVeicolo>() {
             @Override
@@ -102,7 +100,7 @@ public class CorriereController {
         String luogo = txtLuogo.getText().trim();
 
         if (veicoloSelezionato == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING, "Seleziona prima un veicolo!");
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Nessun veicolo selezionato!");
             alert.show();
             return;
         }

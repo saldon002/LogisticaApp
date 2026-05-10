@@ -150,7 +150,7 @@ public class ClienteController implements Observer {
         try {
             // VIRTUAL PROXY
             // L'utente ha richiesto i dettagli: interroghiamo il DB per lo storico.
-            List<String> storico = facade.getStoricoCollo(colloCorrente.getCodice());
+            List<String> storico = colloCorrente.getStorico();
 
             listStorico.getItems().clear();
             if (storico.isEmpty()) {

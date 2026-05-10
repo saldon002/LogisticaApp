@@ -71,7 +71,7 @@
                                                     <children>
                                                         <VBox spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                             <children>
-                                                                <Label text="Colli in Magazzino (Da Spedire)">
+                                                                <Label text="Colli in Magazzino (Da Caricare)">
                                                                     <font>
                                                                         <Font name="System Bold" size="14.0" />
                                                                     </font>
@@ -121,7 +121,7 @@
                                                         <Font name="System Bold" size="14.0" />
                                                     </font>
                                                 </Label>
-                                                <Label text="Visualizza la struttura gerarchica: Azienda -&gt; Veicoli -&gt; Colli caricati" textFill="#777777" />
+                                                <Label text="Visualizza veicoli in viaggio" textFill="#777777" />
                                                 <TreeView fx:id="treeFlottaAttiva" VBox.vgrow="ALWAYS" />
                                             </children>
                                         </VBox>

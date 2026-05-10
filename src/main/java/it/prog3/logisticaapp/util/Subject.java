@@ -17,7 +17,6 @@ public abstract class Subject {
     public void attach(Observer observer) {
         if (observer != null && !observers.contains(observer)) {
             observers.add(observer);
-            System.out.println("DEBUG: Attach esetguio");
         }
     }
 

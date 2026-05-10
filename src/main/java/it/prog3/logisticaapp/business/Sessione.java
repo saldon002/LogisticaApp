@@ -3,7 +3,6 @@ package it.prog3.logisticaapp.business;
 /**
  * Singleton Sessione.
  * Gestisce l'utente attualmente loggato nel sistema (simulazione login).
- * Permette di condividere le informazioni dell'utente tra le varie schermate della GUI.
  */
 public class Sessione {
 

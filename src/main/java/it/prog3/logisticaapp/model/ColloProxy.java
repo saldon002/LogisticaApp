@@ -2,6 +2,8 @@ package it.prog3.logisticaapp.model;
 
 import it.prog3.logisticaapp.business.Sessione;
 import it.prog3.logisticaapp.database.IDataLoader;
+import it.prog3.logisticaapp.util.Observer;
+import it.prog3.logisticaapp.util.Subject;
 import java.util.List;
 
 /**
@@ -12,14 +14,11 @@ import java.util.List;
  * 2. <b>Protection Proxy:</b> Controllo accessi basato sui ruoli della Sessione.
  * </p>
  */
-public class ColloProxy implements ICollo {
+public class ColloProxy extends Subject implements ICollo {
 
-    // Riferimento all'oggetto reale
-    private ColloReale colloReale;
-
+    private ColloReale colloReale; // Riferimento all'oggetto reale
     private String codice;
     private String stato;
-
     private IDataLoader dataLoader;
 
     /**
@@ -63,8 +62,11 @@ public class ColloProxy implements ICollo {
 
     @Override
     public String getStato() {
-        if (colloReale != null) return colloReale.getStato();
-        return stato;
+        if (colloReale != null) {
+            return colloReale.getStato();
+        } else {
+            return stato;
+        }
     }
 
     @Override
@@ -105,12 +107,27 @@ public class ColloProxy implements ICollo {
     public List<String> getStorico() { return getColloReale().getStorico(); }
 
     @Override
-    public void setStorico(List<String> storico) { getColloReale().setStorico(storico); }
+    public void setStorico(List<String> storico) {
+        checkPermessiScrittura();
+        getColloReale().setStorico(storico);
+    }
 
     @Override
     public void aggiungiEventoStorico(String evento) {
         checkPermessiScrittura();
         getColloReale().aggiungiEventoStorico(evento);
+    }
+
+    @Override
+    public void attach(Observer observer) {
+        getColloReale().attach(observer);
+    }
+
+    @Override
+    public void detach(Observer observer) {
+        if (this.colloReale != null) {
+            getColloReale().detach(observer);
+        }
     }
 
     @Override

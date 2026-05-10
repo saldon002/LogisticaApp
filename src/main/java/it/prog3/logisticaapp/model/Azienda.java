@@ -26,9 +26,6 @@ public abstract class Azienda {
     public String getNome() { return nome; }
 
     public void setNome(String nome) {
-        if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Il nome dell'azienda non può essere vuoto.");
-        }
         this.nome = nome;
     }
 
@@ -87,5 +84,4 @@ public abstract class Azienda {
     public String toString() {
         return nome + " (" + flotta.size() + " veicoli)";
     }
-
 }

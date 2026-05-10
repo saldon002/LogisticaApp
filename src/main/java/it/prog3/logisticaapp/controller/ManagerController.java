@@ -144,7 +144,7 @@ public class ManagerController {
      * I colli figli mostrano SOLO il codice.
      */
     private void costruisciAlberoMonitoraggio(List<Azienda> aziende) {
-        TreeItem<String> root = new TreeItem<>("Monitoraggio Spedizioni (Veicoli Carichi)");
+        TreeItem<String> root = new TreeItem<>("Veicoli in viaggio: ");
         root.setExpanded(true);
 
         for (Azienda az : aziende) {
@@ -197,7 +197,7 @@ public class ManagerController {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Successo");
             alert.setHeaderText(null);
-            alert.setContentText("Procedura di carico terminata.\nControlla il tab 'Stato Flotta'.");
+            alert.setContentText("Procedura di carico terminata.");
             alert.showAndWait();
 
             // 4. Refresh
