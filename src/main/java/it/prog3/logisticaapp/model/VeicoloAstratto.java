@@ -25,7 +25,7 @@ public abstract class VeicoloAstratto implements IVeicolo {
     @Override
     public boolean caricaCollo(ICollo collo) {
         if (collo == null) {
-            throw new IllegalArgumentException("Impossibile caricare un collo nullo.");
+            throw new IllegalArgumentException("Impossibile caricare un collo null.");
         }
         // Controllo capienza
         if (carico.size() < capienza) {
@@ -43,9 +43,6 @@ public abstract class VeicoloAstratto implements IVeicolo {
 
     @Override
     public void setCodice(String codice) {
-        if (codice == null || codice.trim().isEmpty()) {
-            throw new IllegalArgumentException("Il codice del veicolo non può essere vuoto.");
-        }
         this.codice = codice;
     }
 
@@ -60,8 +57,11 @@ public abstract class VeicoloAstratto implements IVeicolo {
         this.capienza = capienza;
     }
 
+    /*
     @Override
     public String toString() {
         return getTipo() + " [targa=" + codice + ", carico=" + carico.size() + "/" + capienza + "]";
     }
+
+     */
 }
