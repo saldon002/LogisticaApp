@@ -197,7 +197,7 @@ public class ManagerController {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Successo");
             alert.setHeaderText(null);
-            alert.setContentText("Procedura di carico terminata.\nControlla il tab 'Stato Flotta'.");
+            alert.setContentText("Procedura di carico terminata.");
             alert.showAndWait();
 
             // 4. Refresh
