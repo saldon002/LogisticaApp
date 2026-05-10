@@ -41,14 +41,14 @@ public class NextFitStrategy implements PackingStrategy {
             boolean inserito = veicoloCorrente.caricaCollo(collo);
 
             if (inserito) {
-                markAsCaricato(collo, veicoloCorrente);
+                collo.setStato("CARICATO");
             } else {
                 // NEXT FIT: Se non entra, chiudi e passa al prossimo
                 if (veicoloIterator.hasNext()) {
                     veicoloCorrente = veicoloIterator.next();
                     // Riprova nel nuovo veicolo (vuoto)
                     if (veicoloCorrente.caricaCollo(collo)) {
-                        markAsCaricato(collo, veicoloCorrente);
+                        collo.setStato("CARICATO");
                     } else {
                         // Caso critico: Il collo è più grande della capienza totale del veicolo vuoto
                         System.err.println("[NextFit] ERRORE: Collo " + collo.getCodice() + " troppo grande per " + veicoloCorrente.getTipo());
@@ -59,10 +59,5 @@ public class NextFitStrategy implements PackingStrategy {
                 }
             }
         }
-    }
-
-    private void markAsCaricato(ICollo c, IVeicolo v) {
-        c.setStato("CARICATO");
-        System.out.println(" -> [OK] Collo " + c.getCodice() + " >> Veicolo " + v.getCodice());
     }
 }
