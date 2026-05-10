@@ -80,12 +80,8 @@ public abstract class Azienda {
      */
     public abstract IVeicolo createVeicolo(String tipo, String codice);
 
-    /*
     @Override
     public String toString() {
         return nome + " (" + flotta.size() + " veicoli)";
     }
-
-     */
-
 }
