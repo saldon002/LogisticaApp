@@ -191,14 +191,4 @@ public class LogisticaFacade {
         // 3. Lo metto in cache e lo restituisco
         return gestisciCache(nuovo);
     }
-
-    public List<String> getStoricoCollo(String codice) {
-        // Se è in cache, prendiamo lo storico in memoria (più aggiornato)
-        if (cacheColli.containsKey(codice)) {
-            return cacheColli.get(codice).getStorico();
-        }
-        // Altrimenti query DB
-        ColloReale c = gestoreDatabase.getColloRealeCompleto(codice);
-        return (c != null) ? c.getStorico() : new ArrayList<>();
-    }
 }
