@@ -23,7 +23,6 @@ public class GestoreDatabase implements IDataLoader {
     private static final String SELECT_STORICO = "SELECT descrizione, timestamp FROM storico_spostamenti WHERE collo_codice = ? ORDER BY timestamp DESC";
     private static final String INSERT_COLLO = "INSERT INTO colli (codice, stato, peso, mittente, destinatario) VALUES (?, ?, ?, ?, ?)";
 
-    private static final String SELECT_VEICOLI_AZIENDA = "SELECT * FROM veicoli WHERE azienda = ?";
     private static final String SELECT_VEICOLI_ALL = "SELECT * FROM veicoli ORDER BY azienda, codice";
     private static final String INSERT_VEICOLO = "INSERT INTO veicoli (codice, tipo, capienza, azienda) VALUES (?, ?, ?, ?)";
 
@@ -111,42 +110,9 @@ public class GestoreDatabase implements IDataLoader {
         return lista;
     }
 
-    /**
-     * Recupera la lista dei veicoli di una specifica azienda.
-     */
-    public List<IVeicolo> getFlottaAzienda(String nomeAzienda) {
-        List<IVeicolo> flotta = new ArrayList<>();
-        AziendaConcreta factoryHelper = new AziendaConcreta(nomeAzienda);
-
-        try (Connection conn = ConnessioneDB.getInstance().getConnection();
-             PreparedStatement st = conn.prepareStatement(SELECT_VEICOLI_AZIENDA)) {
-
-            st.setString(1, nomeAzienda);
-
-            try (ResultSet rs = st.executeQuery()) {
-                while (rs.next()) {
-                    String tipo = rs.getString("tipo");
-                    String codice = rs.getString("codice");
-
-                    IVeicolo v = factoryHelper.createVeicolo(tipo, codice);
-
-                    if (v != null) {
-                        List<ICollo> colliCaricati = getColliPerVeicolo(codice);
-                        for (ICollo c : colliCaricati) {
-                            v.caricaCollo(c);
-                        }
-                        flotta.add(v);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Errore DB in getFlottaAzienda per " + nomeAzienda, e);
-        }
-        return flotta;
-    }
 
     // =================================================================================
-    // SEZIONE 2: SETUP & TESTER (Scrittura Dati Iniziali)
+    // SEZIONE 2: SETUP (Scrittura Dati Iniziali)
     // =================================================================================
 
     public void inserisciCollo(ICollo c) {
