@@ -43,8 +43,10 @@ public class GestoreDatabase implements IDataLoader {
      * @return Lista di oggetti Azienda, ciascuno con la propria flotta popolata.
      */
     public List<Azienda> getFlottaAll() {
-        // Mappa per accesso rapido alle aziende già create (Nome -> Oggetto Azienda)
         Map<String, Azienda> mappaAziende = new HashMap<>();
+        Map<String, VeicoloFactory> mappaFactory = new HashMap<>();
+        mappaFactory.put("CAMION", new CamionFactory());
+        mappaFactory.put("FURGONE", new FurgoneFactory());
 
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
              Statement stmt = conn.createStatement();
@@ -53,35 +55,35 @@ public class GestoreDatabase implements IDataLoader {
             while (rs.next()) {
                 String nomeAzienda = rs.getString("azienda");
                 String codiceVeicolo = rs.getString("codice");
-                String tipo = rs.getString("tipo");
+                String tipo = rs.getString("tipo").toUpperCase();
 
                 // 1. Recupera o crea l'azienda
                 Azienda aziendaCorrente = mappaAziende.get(nomeAzienda);
                 if (aziendaCorrente == null) {
-                    aziendaCorrente = new AziendaConcreta(nomeAzienda);
+                    aziendaCorrente = new Azienda(nomeAzienda);
                     mappaAziende.put(nomeAzienda, aziendaCorrente);
                 }
 
-                // 2. Creazione Veicolo tramite Factory Method dell'Azienda
-                try {
-                    IVeicolo v = aziendaCorrente.createVeicolo(tipo, codiceVeicolo);
-                    if (v != null) {
-                        // Carichiamo i colli associati al veicolo
-                        List<ICollo> colliCaricati = getColliPerVeicolo(codiceVeicolo);
-                        for (ICollo c : colliCaricati) {
-                            v.caricaCollo(c);
-                        }
-                        aziendaCorrente.aggiungiVeicoloEsistente(v);
+                // 2. Creazione Veicolo tramite la Factory specifica
+                VeicoloFactory factory = mappaFactory.get(tipo);
+
+                if (factory != null) {
+                    IVeicolo v = factory.createVeicolo(codiceVeicolo);
+
+                    // Carichiamo i colli associati al veicolo
+                    List<ICollo> colliCaricati = getColliPerVeicolo(codiceVeicolo);
+                    for (ICollo c : colliCaricati) {
+                        v.caricaCollo(c);
                     }
-                } catch (IllegalArgumentException e) {
-                    System.err.println("Veicolo non supportato: " + codiceVeicolo);
+                    aziendaCorrente.aggiungiVeicolo(v);
+                } else {
+                    System.err.println("Tipo veicolo non supportato: " + tipo);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Errore caricamento flotta", e);
         }
 
-        // Restituisce i valori della mappa come lista
         return new ArrayList<>(mappaAziende.values());
     }
 
