@@ -14,19 +14,22 @@ public class TestMain {
         GestoreDatabase dao = new GestoreDatabase();
 
         // 2. Creazione AZIENDE e VEICOLI
-        Azienda dhl = new AziendaConcreta("DHL");
-        dhl.aggiungiVeicolo("CAMION", "V01");
-        dhl.aggiungiVeicolo("CAMION", "V02");
-        dhl.aggiungiVeicolo("CAMION", "V03");
-        dhl.aggiungiVeicolo("FURGONE", "V04");
-        dhl.aggiungiVeicolo("FURGONE", "V05");
+        VeicoloFactory creaCamion = new CamionFactory();
+        VeicoloFactory creaFurgone = new FurgoneFactory();
 
-        Azienda brt = new AziendaConcreta("BRT");
-        brt.aggiungiVeicolo("CAMION", "V06");
-        brt.aggiungiVeicolo("CAMION", "V07");
-        brt.aggiungiVeicolo("FURGONE", "V08");
-        brt.aggiungiVeicolo("FURGONE", "V09");
-        brt.aggiungiVeicolo("FURGONE", "V10");
+        Azienda dhl = new Azienda("DHL");
+        Azienda brt = new Azienda("BRT");
+
+        dhl.aggiungiVeicolo(creaCamion.createVeicolo("V01"));
+        dhl.aggiungiVeicolo(creaCamion.createVeicolo("V02"));
+        dhl.aggiungiVeicolo(creaCamion.createVeicolo("V03"));
+        dhl.aggiungiVeicolo(creaFurgone.createVeicolo("V04"));
+        dhl.aggiungiVeicolo(creaFurgone.createVeicolo("V05"));
+        brt.aggiungiVeicolo(creaCamion.createVeicolo("V06"));
+        brt.aggiungiVeicolo(creaCamion.createVeicolo("V07"));
+        brt.aggiungiVeicolo(creaFurgone.createVeicolo("V08"));
+        brt.aggiungiVeicolo(creaFurgone.createVeicolo("V09"));
+        brt.aggiungiVeicolo(creaFurgone.createVeicolo("V10"));
 
         // 3. Salvataggio FLOTTA su DB
         dao.inserisciAzienda(dhl);
