@@ -35,6 +35,7 @@ public class FileLogger implements Observer {
         String messaggio = String.format("[%s] UPDATE: Il collo %s è passato allo stato: %s",
                 time, colloOsservato.getCodice(), colloOsservato.getStato());
 
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
             writer.write(messaggio);
             writer.newLine();
