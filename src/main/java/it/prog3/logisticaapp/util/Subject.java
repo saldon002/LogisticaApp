@@ -11,7 +11,7 @@ import java.util.List;
  */
 public abstract class Subject {
 
-    // Lista degli osservatori iscritti
+    // Lista degli osservatori iscritti final per evetire = null
     private final List<Observer> observers = new ArrayList<>();
 
     public void attach(Observer observer) {
