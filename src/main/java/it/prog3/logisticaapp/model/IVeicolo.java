@@ -14,7 +14,7 @@ public interface IVeicolo extends Serializable {
 
     String getCodice();
     void setCodice(String codice);
-    String getTipo();
+    String getTipo(); // Utile per la formattazione a schermo
     int getCapienza();
     void setCapienza(int capienza);
     List<ICollo> getCarico();
