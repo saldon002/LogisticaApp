@@ -18,7 +18,7 @@ public class Azienda {
 
     public List<IVeicolo> getFlotta() { return flotta; }
     public void setFlotta(List<IVeicolo> flotta) {
-        this.flotta = flotta;
+        this.flotta = (flotta != null) ? flotta : new ArrayList<>();
     }
 
     /**
