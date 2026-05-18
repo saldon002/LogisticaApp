@@ -43,21 +43,28 @@ public class GestoreDatabase implements IDataLoader {
      * @return Lista di oggetti Azienda, ciascuno con la propria flotta popolata.
      */
     public List<Azienda> getFlottaAll() {
+        // HashMap per raggruppare i veicoli sotto la giusta azienda utilizzando il nome dell'azienda come chiave
         Map<String, Azienda> mappaAziende = new HashMap<>();
+        // HashMap per le Factory dei veicoli
         Map<String, VeicoloFactory> mappaFactory = new HashMap<>();
         mappaFactory.put("CAMION", new CamionFactory());
         mappaFactory.put("FURGONE", new FurgoneFactory());
 
+        // Richiedo connessione a ConnessioneDB (Singleton)
         try (Connection conn = ConnessioneDB.getInstance().getConnection();
+             // Creo oggetto che invia la query
              Statement stmt = conn.createStatement();
+             // Tabella dei risultati query
              ResultSet rs = stmt.executeQuery(SELECT_VEICOLI_ALL)) {
 
+            // Sposta il cursore riga per riga nella tabella risultante del database (rs)
             while (rs.next()) {
+                // Estraggo i valori delle colonne e li salvo in variabili locali
                 String nomeAzienda = rs.getString("azienda");
                 String codiceVeicolo = rs.getString("codice");
                 String tipo = rs.getString("tipo").toUpperCase();
 
-                // 1. Recupera o crea l'azienda
+                // 1. Recupera o crea l'azienda e inserimento nella mappaAziende
                 Azienda aziendaCorrente = mappaAziende.get(nomeAzienda);
                 if (aziendaCorrente == null) {
                     aziendaCorrente = new Azienda(nomeAzienda);
@@ -84,6 +91,7 @@ public class GestoreDatabase implements IDataLoader {
             throw new RuntimeException("Errore caricamento flotta", e);
         }
 
+        // HashMap to ArrayList
         return new ArrayList<>(mappaAziende.values());
     }
 
@@ -97,6 +105,7 @@ public class GestoreDatabase implements IDataLoader {
 
             ps.setString(1, codiceVeicolo);
             try (ResultSet rs = ps.executeQuery()) {
+                // Finché c'è un collo associato al veicolo
                 while(rs.next()) {
                     // Creiamo il Proxy passando 'this' come IDataLoader
                     lista.add(new ColloProxy(
