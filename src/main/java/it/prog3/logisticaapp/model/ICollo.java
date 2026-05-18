@@ -1,5 +1,7 @@
 package it.prog3.logisticaapp.model;
 
+import it.prog3.logisticaapp.util.Subject;
+
 import java.util.List;
 
 /**
