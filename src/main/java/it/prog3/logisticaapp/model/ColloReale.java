@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Rappresenta l'oggetto Reale nel pattern Proxy.
- * <p>n
+ * <p>
  * Implementazione concreta di un collo che mantiene tutti i dati in memoria.
  * Estende {@link Subject} per ereditare la logica di notifica (Observer Pattern).
  * </p>
@@ -86,7 +86,9 @@ public class ColloReale extends Subject implements ICollo {
 
     @Override
     public void aggiungiEventoStorico(String evento) {
+        // Inserisco all'indice 0 per ordinamento cronologico decrescente
         this.storico.add(0, evento);
+        // Anche in caso di nuovo evento, notifico gli observers
         notifyObservers();
     }
 
