@@ -118,6 +118,8 @@ public class ColloProxy extends Subject implements ICollo {
         getColloReale().aggiungiEventoStorico(evento);
     }
 
+
+    /*
     @Override
     public void attach(Observer observer) {
         getColloReale().attach(observer);
@@ -129,6 +131,7 @@ public class ColloProxy extends Subject implements ICollo {
             getColloReale().detach(observer);
         }
     }
+    */
 
     @Override
     public String toString() {
