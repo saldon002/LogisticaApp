@@ -60,6 +60,7 @@ public class LogisticaFacade {
         if (this.elencoAziendeCache == null) {
             this.elencoAziendeCache = gestoreDatabase.getFlottaAll();
 
+            // Azienda -> Veicolo -> Collo
             for (Azienda a : elencoAziendeCache) {
                 for (IVeicolo v : a.getFlotta()) {
                     for (ICollo c : v.getCarico()) {
